@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Created and designed by Levi Hicks -->
+    <meta name="theme-color" content="#000000">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N11 - Signup</title>
+    <link rel="stylesheet" href="/signup.css"/>
+    <link rel="icon" type="image/png" href="/favicon-48x48.png" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="N11" />
+    <link rel="manifest" href="/site.webmanifest" />
+  </head>
+  <body>
+    <div class="center">
+      <div>
+        <span class="title">Sign Up</span>
+        <div class="box">
+          <input class="email" placeholder="Username" type="text">
+          <span>@n11.dev</span>
+        </div>
+        <a class="next">Next</a>
+        <span class="signup">Already have an account? <a href="/login">Login.</a></span>
+      </div>
+    </div>
+    <script type="text/javascript" src="/cache/animations.js"></script>
+    <script>
+      let username = document.querySelector('.email')
+      let next = () => {
+        let value = username.value.trim()
+        if (value.length == 0) {
+          document.querySelector('.box').style.border = '1px solid #ff3838'
+          document.querySelector('.box').style.padding = 'calc(.75rem - 1px) calc(1rem - 1px)'
+          return
+        } else {
+          if (!value.match(/^[a-zA-Z0-9]+/)) {
+            document.querySelector('.box').style.border = '1px solid #ff3838'
+            document.querySelector('.box').style.padding = 'calc(.75rem - 1px) calc(1rem - 1px)'
+            return
+          }
+          document.querySelector('.box').style.border = '0'
+          document.querySelector('.box').style.padding = '.75rem 1rem'
+          document.cookie = "username=" + value
+        }
+      }
+      document.querySelector('.next').addEventListener('click', next)
+    </script>
+  </body>
+</html>
