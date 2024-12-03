@@ -1,9 +1,11 @@
 // spin up a basic express website
 let express = require('express')
 let app = express()
+let compression = require('compression');
 
 // setting up the static files directory
 app.use(express.static('public'))
+app.use(compression())
 
 // define a route to serve the HTML file
 app.get('/', (req, res) => {
@@ -50,23 +52,6 @@ async function makeRequest(body) {
     console.error('Error:', error.message);
   }
 }
-
-app.get('/api/link/scan', (req, res) => {
-  // get client ip
-  let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-
-  makeRequest('select LoggedIn from Linker where id == Linker:⟨'+ip+'⟩').then(e => {
-    let users = e[0]["result"][0]['LoggedIn']
-    let s = {}
-    // loop through users
-    Object.entries(users).forEach(user => {
-      // append user key to s with the value as the value.substring(1)
-      s[user[0]] = parseInt(user[1][0])
-    })
-
-    res.send(s)
-  })
-})
 
 app.listen(3000, () => {
 

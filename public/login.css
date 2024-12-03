@@ -42,35 +42,6 @@ div.center >div> .items {
   overflow-y: scroll;
 }
 
-div.center >div>.items >div {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  cursor: pointer;
-  background: white;
-  border-radius: 5px;
-  color: #000;
-  padding: 0.5rem 1rem;
-}
-
-div.center >div>.items >div:hover > span {
-  text-decoration: underline;
-}
-
-div.center >div>.items >div > svg {
-  width: 24px;
-}
-
-div.center >div>.items >div > span {
-  font-size: 1rem;
-  width: 15rem;
-  text-overflow: ellipsis;
-  height: 1rem;
-}
-
-div.center >div> .items > .scanning {
-  font-size: 0.75rem;
-}
 
 div.center >div> span.title {
   font-size: 1.5rem;
@@ -80,8 +51,37 @@ a {
   color: skyblue;
   text-decoration: none;
 }
+
 a:hover {
   text-decoration: underline;
+}
+
+.codes {
+  display: flex;
+  gap: .5rem;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem 0rem;
+  border-radius: 10px;
+}
+
+.codes > input {
+  width: 2rem;
+  font-size: 1rem;
+  text-align: center;
+  border-radius: 7px;
+  border: none;
+  height: 2rem;
+  outline: none;
+  font-family: monospace !important;
+  color: #5f5f5f;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 @media (max-width: 1000px) {
