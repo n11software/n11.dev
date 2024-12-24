@@ -27,6 +27,9 @@
       </div>
     </div>
     <script type="text/javascript" src="/cache/animations.js"></script>
+    <script type="module">
+      import "./EncLib.js";
+    </script>
     <script>
       let username = document.querySelector('.email')
       let next = () => {
@@ -43,10 +46,55 @@
           }
           document.querySelector('.box').style.border = '0'
           document.querySelector('.box').style.padding = '.75rem 1rem'
+          // reset all cookies
+          document.cookie = "username=; expires=Thu, 01 Jan 1970 00:00:00 UTC"
+          document.cookie = "key=; expires=Thu, 01 Jan 1970 00:00:00 UTC"
+          document.cookie = "cert=; expires=Thu, 01 Jan 1970 00:00:00 UTC"
           document.cookie = "username=" + value
+          // Set loading animation
+          let loading = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="loading" style="width: 1.95rem;color:2c2c2c;">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+</svg>`
+          document.querySelector('.next').innerHTML = loading
+          document.querySelector('.next').style.padding = "0rem 1rem" // 0.5rem 1rem
+          fetch('/api/user/create', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(async data => {
+            document.querySelector('.next').innerHTML = "Next"
+            document.querySelector('.next').style.padding = "0.5rem 1rem"
+            if (data.error) {
+              // Handle error
+              console.error(data.error)
+              document.querySelector('.box').style.border = '1px solid #ff3838'
+              document.querySelector('.box').style.padding = 'calc(.75rem - 1px) calc(1rem - 1px)'
+            } else {
+              // Store the key and certificate in local storage
+              localStorage.setItem('key', JSON.stringify(data.Key));
+              localStorage.setItem('cert', JSON.stringify(data.Certificate));
+              localStorage.setItem('signature', JSON.stringify(data.Signature));
+              // console.log('Cert:', data.Certificate);
+              const key = localStorage.getItem('key');
+              let newURL = await window.EncLib.Decrypt(data.Redirect, key);
+              console.log('Decrypted URL:', newURL);
+              window.location.href = newURL
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error)
+          })
         }
       }
       document.querySelector('.next').addEventListener('click', next)
+      document.querySelector('.email').addEventListener('keydown', (e) => {
+        if (e.key == 'Enter') {
+          next()
+        }
+      })
     </script>
   </body>
 </html>

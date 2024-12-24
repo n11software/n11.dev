@@ -6,6 +6,11 @@ let crypto = require('crypto')
 var cookieParser = require('cookie-parser')
 app.use(cookieParser())
 let compression = require('compression');
+let EncLib = require('./EncLib')
+const bodyParser = require('body-parser')
+
+
+app.use(bodyParser.json());
 
 // setting up the static files directory
 app.use(express.static('public'))
@@ -33,7 +38,6 @@ app.get('/cache/:name', (req, res) => {
   )
 })
 
-
 async function makeRequest(body) {
   try {
     const response = await fetch('http://localhost:8000/sql', {
@@ -48,6 +52,7 @@ async function makeRequest(body) {
     });
 
     if (!response.ok) {
+      console.log(body)
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
@@ -60,15 +65,41 @@ async function makeRequest(body) {
 
 
 app.get('/link', (req, res) => {
-  // res.header('Set-Cookie', 'cert='+fs.readFileSync('cert.pem').toString().replaceAll('\n', '\\n'))
-  // res.send(req.cookies.key.replaceAll('\\n', '\n'))
-  let key = req.cookies.key.replaceAll('\\n', '\n')
-  let cert = req.cookies.cert.replaceAll('\\n', '\n')
-  makeRequest('SELECT Code FROM Users WHERE Certificate=="'+cert+'"').then(d => {
-    let bufferEncrypted = Buffer.from(d[0]["result"][0]["Code"], 'base64')
-    let decrypted = crypto.privateDecrypt(key, bufferEncrypted)
-    let file = fs.readFileSync(__dirname + '/pages/link.html')
-    res.send(file.toString().replaceAll('{code}', decrypted.toString('utf-8')))
+  res.sendFile(__dirname + '/pages/link.html')
+})
+
+app.post('/api/link', (req, res) => {
+  // Check if the cert is valid.
+  if (!req.body) {
+    return res.json({"error": "No authentication data provided"});
+  }
+
+  let authData = EncLib.DecodeAuth(req.body);
+  if (!authData) {
+    return res.json({"error": "Invalid authentication data"});
+  }
+
+  let { cert, key, signature } = authData;
+  if (!cert || !key || !signature) {
+    return res.json({"error": "Missing authentication components"});
+  }
+
+  if (!EncLib.VerifyPair(cert, signature)) {
+    return res.json({"error": "Invalid certificate signature"});
+  }
+
+  // Continue with existing logic...
+  makeRequest('SELECT * FROM Users WHERE Username == "'+req.cookies.username+'"').then(e => {
+    console.log(req.cookies.username)
+    console.log(e)
+    if (e[0]["result"] == []) {
+      res.json({"error": "No user found with this certificate"});
+    } else {
+      let user = e[0]["result"][0];
+      res.json({
+        "Code": user["Code"]
+      });
+    }
   })
 })
 
@@ -81,14 +112,74 @@ function generateRandomString(length, characters) {
   return result;
 }
 
+app.post('/api/user/create', async (req, res) => {
+  let username = req.cookies.username;
+  const usernameRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+$/;
+  if (!usernameRegex.test(username)) return res.json({"error": "Invalid username."});
+  // to lower username
+  username = username.toLowerCase();
+
+  // Create a new key and cert
+  try {
+    let { publicKey, privateKey, signature } = await EncLib.CreateSignedPair();
+    let verified = EncLib.VerifyPair(publicKey, signature);
+    if (!verified) {
+      res.json({"error": "Could not verify the signature"});
+    }
+    const characters = "01234556789";
+    const randomString = generateRandomString(6, characters);
+    let code = await EncLib.Encrypt(randomString, publicKey);
+    makeRequest(`
+    $exists = ((SELECT * FROM Users WHERE Username == '${username}')==[]);
+
+    IF $exists = true THEN
+        INSERT INTO Users {
+          Certificate: '${publicKey}',
+          Code: '${code}',
+          Created: time::now(),
+            Username: '${username}'
+        };
+    END;`).then(async e => {
+      if (e[1]["result"] == null) {
+        // The username is already taken, notify the user.
+        res.json({"error": "This username is taken"});
+      } else {
+        // Original plan was to store the data in cookies but it is too large so we will use localStorage
+        let redirURL = await EncLib.Encrypt("/profiles/" + e[1]["result"][0]["id"].split('Users:')[1], publicKey);
+        res.json({
+          "Certificate": Buffer.from(publicKey).toString('base64'),
+          "Key": Buffer.from(privateKey).toString('base64'),
+          "Signature": Buffer.from(signature).toString('base64'),
+          "Redirect": redirURL
+        });
+      }
+    });
+  } catch (err) {
+    console.error('Error:', err);
+    res.json({"error": "An error occurred"});
+    // TODO: Log all errors to the DB and make a dashboard to view everything
+  }
+});
+
 app.post('/api/link/new', (req, res) => {
+  // Check if cookies exist and have auth data
+  if (!req.cookies || !req.cookies.auth) {
+    return res.json({"error": "No authentication data provided"});
+  }
+  
+  let authData = EncLib.DecodeAuth(req.cookies.auth);
+  if (!authData) {
+    return res.json({"error": "Invalid authentication data"});
+  }
+
   const characters = "01234556789";
   const randomString = generateRandomString(6, characters);
-  let key = req.cookies.key.replaceAll('\\n', '\n')
-  let cert = req.cookies.cert.replaceAll('\\n', '\n')
+  
+  let { cert, key } = authData;
   const bufferMessage = Buffer.from(randomString, 'utf-8');
   const encrypted = crypto.publicEncrypt(cert, bufferMessage);
   let newCode = encrypted.toString('base64');
+  
   makeRequest('UPDATE Users SET Code = "'+newCode+'" WHERE Certificate = "'+cert+'"')
   res.json({"Code": randomString})
 })
