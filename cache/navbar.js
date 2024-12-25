@@ -107,6 +107,8 @@ let createNavbar = () => {
 // Manage the navbar
 let navline
 
+let data = '{pfp}'
+
 let createNavLine = () => {
   let navLine = document.createElement('div')
   navLine.style.width = '0'
@@ -117,52 +119,50 @@ let createNavLine = () => {
   document.body.appendChild(navLine)
   navline = navLine
 }
-const response = fetch('/api/user/getpfp').then(response => response.json()).then(data => {
-  console.log(data, data.pfp != undefined && data.error == undefined)
-  if (data.error != undefined) {
-    hasPFP = false
-  } else if (data.pfp !== undefined) {
-    pfp.src = `data:image/png;base64,${data.pfp}`
-    if (data.pfp == null) {
-      pfp.src = `/Default.jpg`;
-    }
-    pfp.classList.add('pfp')
-    hasPFP = true
+
+if (data.error != undefined) {
+  hasPFP = false
+} else if (data.pfp !== undefined) {
+  pfp.src = `data:image/png;base64,${data.pfp}`
+  if (data.pfp == null) {
+    pfp.src = `/Default.jpg`;
   }
-  createNavbar()
-  let navbar = document.querySelector('.navbar-mobile')
-  navbar.style.top = '69px'
-  let mobileMenuOpen = document.querySelector('#mobile-open')
-  mobileMenuOpen.addEventListener('click', () => {
-    if (!s) {
-      //open
-      document.querySelector('.navbar').style.position = 'fixed'
-      navbar.style.display = 'flex'
-      mobileMenuOpen.innerHTML = x
-      disableScroll()
-      let t = 0
-      let addFade = (e) => {
-        let i = .15
-        document.querySelectorAll(e).forEach(el => {
-          el.style.animation = 'fade-in .5s 1'
-          el.style.animationDelay = t +'s'
-          el.style.animationFillMode = 'forwards'
-          i < e.length ? t+=.15 : i++
-        })
-      }
-      
-      addFade('.navbar-mobile > a:not(.login)')
-      s = true
-    } else {
-      //close
-      document.querySelector('.navbar').style.position = 'inherit'
-      navbar.style.display = 'none'
-      enableScroll()
-      mobileMenuOpen.innerHTML = lines
-      navline.style.opacity = '0'
-      s = false
+  pfp.classList.add('pfp')
+  hasPFP = true
+}
+createNavbar()
+let navbar = document.querySelector('.navbar-mobile')
+navbar.style.top = '69px'
+let mobileMenuOpen = document.querySelector('#mobile-open')
+mobileMenuOpen.addEventListener('click', () => {
+  if (!s) {
+    //open
+    document.querySelector('.navbar').style.position = 'fixed'
+    navbar.style.display = 'flex'
+    mobileMenuOpen.innerHTML = x
+    disableScroll()
+    let t = 0
+    let addFade = (e) => {
+      let i = .15
+      document.querySelectorAll(e).forEach(el => {
+        el.style.animation = 'fade-in .5s 1'
+        el.style.animationDelay = t +'s'
+        el.style.animationFillMode = 'forwards'
+        i < e.length ? t+=.15 : i++
+      })
     }
-  })
+    
+    addFade('.navbar-mobile > a:not(.login)')
+    s = true
+  } else {
+    //close
+    document.querySelector('.navbar').style.position = 'inherit'
+    navbar.style.display = 'none'
+    enableScroll()
+    mobileMenuOpen.innerHTML = lines
+    navline.style.opacity = '0'
+    s = false
+  }
 })
 
 let s = false // closed

@@ -25,27 +25,14 @@
       </div>
     </div>
     <script type="text/javascript" src="/cache/animations.js"></script>
-    <script>
-    </script>
     <script type="module">
+      let data = '{code}'
       import "./EncLib.js";
-      // post to /api/link
-      fetch('/api/link', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              'Certificate': JSON.parse(localStorage.getItem('cert')),
-              'Key': JSON.parse(localStorage.getItem('key')),
-              'Signature': JSON.parse(localStorage.getItem('signature'))
-            })
-          })
-          .then(response => response.json())
-          .then(async data => {
-            document.querySelector('.codes>span').innerText = (await window.EncLib.Decrypt(data['Code'], JSON.parse(localStorage.getItem('key'))))
-            
-          })
+      import { CookieUtils } from "./cookieEncoder.js";
+      
+      document.querySelector('.codes>span').innerText = (
+        await window.EncLib.Decrypt(data, CookieUtils.getCookieChunks('key'))
+      );
     </script>
     <style>
       .codes>span {

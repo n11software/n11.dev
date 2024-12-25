@@ -29,8 +29,8 @@
     <script type="text/javascript" src="/cache/animations.js"></script>
     <script type="module">
       import "./EncLib.js";
-    </script>
-    <script>
+      import { CookieUtils } from "./cookieEncoder.js";
+
       let username = document.querySelector('.email')
       let next = () => {
         let value = username.value.trim()
@@ -70,12 +70,12 @@
               document.querySelector('.box').style.border = '1px solid #ff3838'
               document.querySelector('.box').style.padding = 'calc(.75rem - 1px) calc(1rem - 1px)'
             } else {
-              // Store the key and certificate in local storage
-              localStorage.setItem('key', JSON.stringify(data.Key));
-              localStorage.setItem('cert', JSON.stringify(data.Certificate));
-              localStorage.setItem('signature', JSON.stringify(data.Signature));
+              // Store the key and certificate in cookies
+              CookieUtils.setCookieChunks('key', data.Key);
+              CookieUtils.setCookieChunks('cert', data.Certificate);
+              CookieUtils.setCookieChunks('signature', data.Signature);
               // console.log('Cert:', data.Certificate);
-              const key = localStorage.getItem('key');
+              const key = CookieUtils.getCookieChunks('key');
               let newURL = await window.EncLib.Decrypt(data.Redirect, key);
               console.log('Decrypted URL:', newURL);
               window.location.href = newURL

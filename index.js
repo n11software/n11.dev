@@ -11,6 +11,7 @@ const bodyParser = require('body-parser')
 const multer = require('multer');
 const sharp = require('sharp');
 const upload = multer({ storage: multer.memoryStorage() });
+const CookieUtils = require('./server/cookieEncoder.js');
 
 app.use(bodyParser.json());
 
@@ -32,12 +33,39 @@ app.get('/signup', (req, res) => {
   res.sendFile(__dirname + '/pages/signup.html')
 })
 
-app.get('/cache/:name', (req, res) => {
-  res.setHeader('Cache-Control', 'public, max-age=31536000')
-  res.sendFile(
-    `cache/${req.params.name}`,
-    { root: __dirname }
-  )
+app.get('/cache/:name', async (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=3600')
+    let data
+    if (req.params.name.includes('navbar.js')) {
+    try {
+      const username = req.cookies.username;
+      if (!username) {
+        data = { error: "Not logged in" };
+      }
+
+      const result = await makeRequest(`
+        SELECT ProfilePicture FROM Users 
+        WHERE Username == '${username.toLowerCase()}'
+      `);
+
+      if (result && result[0].result && result[0].result[0]) {
+        data = { pfp: result[0].result[0].ProfilePicture };
+      } else {
+        data = { "error": "Not logged in" };
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      data = { error: "Failed to fetch profile picture" };
+    }
+    let file = fs.readFileSync(__dirname + '/cache/navbar.js', 'utf8');
+    file = file.replaceAll('\'{pfp}\'', JSON.stringify(data))
+    res.setHeader('Content-Type', 'application/javascript');
+    res.send(file);
+  } else
+    res.sendFile(
+      `cache/${req.params.name}`,
+      { root: __dirname }
+    )
 })
 
 async function makeRequest(body) {
@@ -67,40 +95,44 @@ async function makeRequest(body) {
 
 
 app.get('/link', (req, res) => {
-  res.sendFile(__dirname + '/pages/link.html')
-})
+  const cert = CookieUtils.getCookieChunks(req.cookies, 'cert');
+  const key = CookieUtils.getCookieChunks(req.cookies, 'key');
+  const signature = CookieUtils.getCookieChunks(req.cookies, 'signature');
 
-app.post('/api/link', (req, res) => {
-  // Check if the cert is valid.
-  if (!req.body) {
+  if (!cert || !key || !signature) {
     return res.json({"error": "No authentication data provided"});
   }
 
-  let authData = EncLib.DecodeAuth(req.body);
+  let authData = EncLib.DecodeAuth({
+    Certificate: cert,
+    Key: key,
+    Signature: signature
+  });
+  
   if (!authData) {
     return res.json({"error": "Invalid authentication data"});
   }
 
-  let { cert, key, signature } = authData;
-  if (!cert || !key || !signature) {
-    return res.json({"error": "Missing authentication components"});
-  }
-
-  if (!EncLib.VerifyPair(cert, signature)) {
+  if (!EncLib.VerifyPair(authData.cert, authData.signature)) {
     return res.json({"error": "Invalid certificate signature"});
   }
 
   // Continue with existing logic...
   makeRequest('SELECT * FROM Users WHERE Username == "'+req.cookies.username+'"').then(e => {
-    if (e[0]["result"] <= 0) {
+    if (e[0]["result"].length <= 0) {
       res.json({"error": "No user found with this certificate"});
     } else {
       let user = e[0]["result"][0];
-      res.json({
-        "Code": user["Code"]
-      });
+      let file = fs.readFileSync(__dirname + '/pages/link.html', 'utf8');
+      file = file.replace('{code}', user["Code"])
+      res.send(file);
     }
+    return
+  }).catch(e => {
+    console.error('Error:', e);
+    res.json({"error": "An error occurred"});
   })
+  // res.send('something went wrong')
 })
 
 function generateRandomString(length, characters) {
@@ -250,24 +282,24 @@ app.post('/api/user/updatepfp', upload.single('pfp'), async (req, res) => {
 
 app.get('/api/user/getpfp', async (req, res) => {
     try {
-        const username = req.cookies.username;
-        if (!username) {
-            return res.json({ error: "Not logged in" });
-        }
+      const username = req.cookies.username;
+      if (!username) {
+        return res.json({ error: "Not logged in" });
+      }
 
-        const result = await makeRequest(`
-            SELECT ProfilePicture FROM Users 
-            WHERE Username == '${username.toLowerCase()}'
-        `);
+      const result = await makeRequest(`
+        SELECT ProfilePicture FROM Users 
+        WHERE Username == '${username.toLowerCase()}'
+      `);
 
-        if (result && result[0].result && result[0].result[0]) {
-            res.json({ pfp: result[0].result[0].ProfilePicture });
-        } else {
-            res.json({ "error": "Not logged in" });
-        }
+      if (result && result[0].result && result[0].result[0]) {
+        res.json({ pfp: result[0].result[0].ProfilePicture });
+      } else {
+        res.json({ "error": "Not logged in" });
+      }
     } catch (error) {
-        console.error('Error:', error);
-        res.json({ error: "Failed to fetch profile picture" });
+      console.error('Error:', error);
+      res.json({ error: "Failed to fetch profile picture" });
     }
 });
 
