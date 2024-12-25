@@ -263,7 +263,7 @@ app.get('/api/user/getpfp', async (req, res) => {
         if (result && result[0].result && result[0].result[0]) {
             res.json({ pfp: result[0].result[0].ProfilePicture });
         } else {
-            res.json({ pfp: null });
+            res.json({ "error": "Not logged in" });
         }
     } catch (error) {
         console.error('Error:', error);

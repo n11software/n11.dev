@@ -4,6 +4,10 @@ ss.rel = "stylesheet"
 ss.href = "/cache/navbar.css"
 document.getElementsByTagName("head")[0].appendChild(ss)
 
+// pfp
+let hasPFP = false
+let pfp = document.createElement('img')
+
 // Create the navbar
 let navLinks = {"Enterprise": "//enterprise.n11.dev", "Developers": "//developers.n11.dev", 
   "Mail": "//mail.n11.dev", "Social": "//social.n11.dev", "Store": "//store.n11.dev"}
@@ -18,12 +22,14 @@ let createMobileNav = () => {
       link.textContent = key
       mobileNav.appendChild(link)
     }
-    mobileNav.appendChild(document.createElement('a'))
-    mobileNav.lastElementChild.textContent = 'Login'
-    mobileNav.lastElementChild.classList.add('login')
-    mobileNav.lastElementChild.setAttribute('href', '//n11.dev/login')
+    if (!hasPFP) {
+      mobileNav.appendChild(document.createElement('a'))
+      mobileNav.lastElementChild.textContent = 'Login'
+      mobileNav.lastElementChild.classList.add('login')
+      mobileNav.lastElementChild.setAttribute('href', '//n11.dev/login')
+    }
   }
-  document.currentScript.parentNode.insertBefore(mobileNav, document.currentScript);
+  document.body.insertBefore(mobileNav, document.currentScript);
 }
 
 let createNavbar = () => {
@@ -52,12 +58,20 @@ let createNavbar = () => {
   navbar.appendChild(links)
 
   let login = document.createElement('div')
-  let loginButton = document.createElement('a')
-  loginButton.setAttribute('href', '//n11.dev/login')
-  loginButton.textContent = 'Login'
-  loginButton.classList.add('login')
-  login.appendChild(loginButton)
-  navbar.appendChild(login)
+  { // Login/Account button
+    if (hasPFP)  {
+      let pfpDupe = pfp.cloneNode()
+      login.appendChild(pfpDupe)
+      navbar.appendChild(login)
+    } else {
+      let loginButton = document.createElement('a')
+      loginButton.setAttribute('href', '//n11.dev/login')
+      loginButton.textContent = 'Login'
+      loginButton.classList.add('login')
+      login.appendChild(loginButton)
+      navbar.appendChild(login)
+    }
+  }
 
   let mobile = document.createElement('div')
   mobile.classList.add('mobile')
@@ -75,9 +89,13 @@ let createNavbar = () => {
     mobile.appendChild(logo)
   }
 
-  mobile.innerHTML += `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu" id="mobile-open">
+  let mobileOpt = document.createElement('div')
+  mobileOpt.classList.add('mbopt')
+  mobileOpt.appendChild(pfp)
+  mobileOpt.innerHTML += `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu" id="mobile-open">
           <path fill-rule="evenodd" d="M3 6.75A.75.75 0 0 1 3.75 6h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 6.75ZM3 12a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 12Zm0 5.25a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd"></path>
         </svg>`
+  mobile.appendChild(mobileOpt)
 
   navbar.appendChild(mobile)
 
@@ -85,7 +103,6 @@ let createNavbar = () => {
   createMobileNav()
 }
 
-createNavbar()
 
 // Manage the navbar
 let navline
@@ -100,11 +117,55 @@ let createNavLine = () => {
   document.body.appendChild(navLine)
   navline = navLine
 }
+const response = fetch('/api/user/getpfp').then(response => response.json()).then(data => {
+  console.log(data, data.pfp != undefined && data.error == undefined)
+  if (data.error != undefined) {
+    hasPFP = false
+  } else if (data.pfp !== undefined) {
+    pfp.src = `data:image/png;base64,${data.pfp}`
+    if (data.pfp == null) {
+      pfp.src = `/Default.jpg`;
+    }
+    pfp.classList.add('pfp')
+    hasPFP = true
+  }
+  createNavbar()
+  let navbar = document.querySelector('.navbar-mobile')
+  navbar.style.top = '69px'
+  let mobileMenuOpen = document.querySelector('#mobile-open')
+  mobileMenuOpen.addEventListener('click', () => {
+    if (!s) {
+      //open
+      document.querySelector('.navbar').style.position = 'fixed'
+      navbar.style.display = 'flex'
+      mobileMenuOpen.innerHTML = x
+      disableScroll()
+      let t = 0
+      let addFade = (e) => {
+        let i = .15
+        document.querySelectorAll(e).forEach(el => {
+          el.style.animation = 'fade-in .5s 1'
+          el.style.animationDelay = t +'s'
+          el.style.animationFillMode = 'forwards'
+          i < e.length ? t+=.15 : i++
+        })
+      }
+      
+      addFade('.navbar-mobile > a:not(.login)')
+      s = true
+    } else {
+      //close
+      document.querySelector('.navbar').style.position = 'inherit'
+      navbar.style.display = 'none'
+      enableScroll()
+      mobileMenuOpen.innerHTML = lines
+      navline.style.opacity = '0'
+      s = false
+    }
+  })
+})
 
-let mobileMenuOpen = document.querySelector('#mobile-open')
 let s = false // closed
-let navbar = document.querySelector('.navbar-mobile')
-navbar.style.top = '69px'
 
 
 let lines = `<path fill-rule="evenodd" d="M3 6.75A.75.75 0 0 1 3.75 6h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 6.75ZM3 12a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 12Zm0 5.25a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />`
@@ -153,36 +214,6 @@ function enableScroll() {
   window.removeEventListener('keydown', preventDefaultForScrollKeys, false);
 }
 
-mobileMenuOpen.addEventListener('click', () => {
-  if (!s) {
-    //open
-    document.querySelector('.navbar').style.position = 'fixed'
-    navbar.style.display = 'flex'
-    mobileMenuOpen.innerHTML = x
-    disableScroll()
-    let t = 0
-    let addFade = (e) => {
-      let i = .15
-      document.querySelectorAll(e).forEach(el => {
-        el.style.animation = 'fade-in .5s 1'
-        el.style.animationDelay = t +'s'
-        el.style.animationFillMode = 'forwards'
-        i < e.length ? t+=.15 : i++
-      })
-    }
-    
-    addFade('.navbar-mobile > a:not(.login)')
-    s = true
-  } else {
-    //close
-    document.querySelector('.navbar').style.position = 'inherit'
-    navbar.style.display = 'none'
-    enableScroll()
-    mobileMenuOpen.innerHTML = lines
-    navline.style.opacity = '0'
-    s = false
-  }
-})
 
 document.addEventListener('DOMContentLoaded', () => {
   createNavLine()

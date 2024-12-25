@@ -112,6 +112,20 @@ body {
   display: none;
 }
 
+.pfp {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid #aaa;
+}
+
+.mbopt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
 .navbar-mobile > a:not(.login) {
   opacity: 0;
 }
@@ -149,6 +163,10 @@ body {
 
 /* Mobile */
 @media only screen and (max-width: 1000px) {
+  .pfp {
+    width: 2rem;
+    height: 2rem;
+  }
   .navbar > *:not(.mobile) {
     display: none;
   }
