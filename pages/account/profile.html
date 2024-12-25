@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile</title>
+    <style>
+        .pfp-preview {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <img id="pfpPreview" class="pfp-preview" src="/Default.jpg" alt="Profile Picture">
+        <input type="file" id="pfpInput" accept="image/*">
+        <button onclick="uploadPfp()">Update Profile Picture</button>
+    </div>
+
+    <script>
+        const pfpInput = document.getElementById('pfpInput');
+        const pfpPreview = document.getElementById('pfpPreview');
+
+        pfpInput.onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                pfpPreview.src = URL.createObjectURL(file);
+            }
+        }
+
+        async function uploadPfp() {
+            const file = pfpInput.files[0];
+            if (!file) return alert('Please select a file');
+
+            const formData = new FormData();
+            formData.append('pfp', file);
+
+            try {
+                const response = await fetch('/api/user/updatepfp', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert('Profile picture updated successfully!');
+                }
+            } catch (err) {
+                alert('Failed to upload profile picture');
+            }
+        }
+
+        // Add this function to load current profile picture
+        async function loadCurrentPfp() {
+            try {
+                const response = await fetch('/api/user/getpfp');
+                const data = await response.json();
+                
+                if (data.pfp) {
+                    if (data.pfp == null) {
+                        pfpPreview.src = `/Default.jpg`;
+                    }
+                    pfpPreview.src = `data:image/png;base64,${data.pfp}`;
+                }
+            } catch (err) {
+                console.error('Failed to load profile picture');
+            }
+        }
+
+        // Load profile picture when page loads
+        loadCurrentPfp();
+    </script>
+</body>
+</html>

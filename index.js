@@ -8,7 +8,9 @@ app.use(cookieParser())
 let compression = require('compression');
 let EncLib = require('./EncLib')
 const bodyParser = require('body-parser')
-
+const multer = require('multer');
+const sharp = require('sharp');
+const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(bodyParser.json());
 
@@ -90,9 +92,7 @@ app.post('/api/link', (req, res) => {
 
   // Continue with existing logic...
   makeRequest('SELECT * FROM Users WHERE Username == "'+req.cookies.username+'"').then(e => {
-    console.log(req.cookies.username)
-    console.log(e)
-    if (e[0]["result"] == []) {
+    if (e[0]["result"] <= 0) {
       res.json({"error": "No user found with this certificate"});
     } else {
       let user = e[0]["result"][0];
@@ -137,7 +137,8 @@ app.post('/api/user/create', async (req, res) => {
           Certificate: '${publicKey}',
           Code: '${code}',
           Created: time::now(),
-            Username: '${username}'
+          Username: '${username}',
+          ProfilePicture: null
         };
     END;`).then(async e => {
       if (e[1]["result"] == null) {
@@ -200,6 +201,75 @@ app.get('/api/link/scan', (req, res) => {
     res.send(s)
   })
 })
+
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/pages/index.html')
+})
+
+app.get('/profile', (req, res) => {
+    res.sendFile(__dirname + '/pages/account/profile.html');
+});
+
+app.post('/api/user/updatepfp', upload.single('pfp'), async (req, res) => {
+  // TODO: Add authentication
+    try {
+        if (!req.file) {
+            return res.json({ error: "No file uploaded" });
+        }
+
+        // Convert image to PNG and resize
+        const processedImage = await sharp(req.file.buffer)
+            .resize(200, 200, { // Set your desired dimensions
+                fit: 'cover',
+                position: 'center'
+            })
+            .png()
+            .toBuffer();
+
+        // Convert to base64 for database storage
+        const base64Image = processedImage.toString('base64');
+
+        // Update the database
+        const username = req.cookies.username;
+        if (!username) {
+            return res.json({ error: "Not logged in" });
+        }
+
+        const result = await makeRequest(`
+            UPDATE Users 
+            SET ProfilePicture = '${base64Image}'
+            WHERE Username == '${username.toLowerCase()}'
+        `);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error:', error);
+        res.json({ error: "Failed to process image" });
+    }
+});
+
+app.get('/api/user/getpfp', async (req, res) => {
+    try {
+        const username = req.cookies.username;
+        if (!username) {
+            return res.json({ error: "Not logged in" });
+        }
+
+        const result = await makeRequest(`
+            SELECT ProfilePicture FROM Users 
+            WHERE Username == '${username.toLowerCase()}'
+        `);
+
+        if (result && result[0].result && result[0].result[0]) {
+            res.json({ pfp: result[0].result[0].ProfilePicture });
+        } else {
+            res.json({ pfp: null });
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        res.json({ error: "Failed to fetch profile picture" });
+    }
+});
 
 app.listen(3000, () => {
 
