@@ -35,7 +35,7 @@ app.get('/signup', (req, res) => {
 
 app.get('/cache/:name', async (req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=3600')
-    let data
+    let data, un, email
     if (req.params.name.includes('navbar.js')) {
     try {
       const username = req.cookies.username;
@@ -44,12 +44,14 @@ app.get('/cache/:name', async (req, res) => {
       }
 
       const result = await makeRequest(`
-        SELECT ProfilePicture FROM Users 
+        SELECT * FROM Users 
         WHERE Username == '${username.toLowerCase()}'
       `);
 
       if (result && result[0].result && result[0].result[0]) {
         data = { pfp: result[0].result[0].ProfilePicture };
+        un = result[0].result[0].Username;
+        email = un + '@n11.dev';
       } else {
         data = { "error": "Not logged in" };
       }
@@ -59,6 +61,8 @@ app.get('/cache/:name', async (req, res) => {
     }
     let file = fs.readFileSync(__dirname + '/cache/navbar.js', 'utf8');
     file = file.replaceAll('\'{pfp}\'', JSON.stringify(data))
+    file = file.replaceAll('\'{username}\'', JSON.stringify(un))
+    file = file.replaceAll('\'{email}\'', JSON.stringify(email))
     res.setHeader('Content-Type', 'application/javascript');
     res.send(file);
   } else

@@ -4,6 +4,10 @@ ss.rel = "stylesheet"
 ss.href = "/cache/navbar.css"
 document.getElementsByTagName("head")[0].appendChild(ss)
 
+// SVG paths
+let lines = `<path fill-rule="evenodd" d="M3 6.75A.75.75 0 0 1 3.75 6h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 6.75ZM3 12a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 12Zm0 5.25a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />`
+let x = `<path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />`
+
 // pfp
 let hasPFP = false
 let pfp = document.createElement('img')
@@ -30,6 +34,18 @@ let createMobileNav = () => {
     }
   }
   document.body.insertBefore(mobileNav, document.currentScript);
+}
+
+// Add this outside any function to track popup state
+let popupVal = false;
+
+let togglePopUp = (val) => {
+  popupVal = val;
+  if (val) {
+    document.querySelector('.popup').style.display = 'flex'
+  } else {
+    document.querySelector('.popup').style.display = 'none'
+  }
 }
 
 let createNavbar = () => {
@@ -59,8 +75,83 @@ let createNavbar = () => {
 
   let login = document.createElement('div')
   { // Login/Account button
+    console.log(hasPFP)
     if (hasPFP)  {
-      let pfpDupe = pfp.cloneNode()
+      {
+        // create pop up
+        let popUp = document.createElement('div')
+        popUp.classList.add('popup')
+        popUp.style.display = 'none'
+
+        // Add close button for mobile
+        let closeBtn = document.createElement('button')
+        closeBtn.classList.add('close-button')
+        closeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">'+x+'</svg>'
+        closeBtn.onclick = () => {
+          togglePopUp(false)
+          val = false
+        }
+        popUp.appendChild(closeBtn)
+
+        let top = document.createElement('div')
+        
+        // Create hidden file input
+        let fileInput = document.createElement('input')
+        fileInput.type = 'file'
+        fileInput.accept = 'image/*'
+        fileInput.style.display = 'none'
+        fileInput.onchange = (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            uploadPfp(file);
+          }
+        }
+        top.appendChild(fileInput)
+        
+        let pfpDupe = pfp.cloneNode(true)
+        pfpDupe.onclick = () => fileInput.click()
+        pfpDupe.style.cursor = 'pointer'
+        top.appendChild(pfpDupe)
+        
+        let username = document.createElement('span')
+        username.classList.add('username')
+        username.textContent = '{username}'
+        top.appendChild(username)
+        let email = document.createElement('span')
+        email.classList.add('email')
+        email.textContent = '{email}'
+        top.appendChild(email)
+        let bottom = document.createElement('div')
+        let link = document.createElement('a')
+        link.classList.add('link')
+        link.textContent = 'Link Device'
+        link.href = '//n11.dev/link'
+        bottom.appendChild(link)
+        let manage = document.createElement('a')
+        manage.classList.add('manage')
+        manage.textContent = 'Manage Account'
+        manage.href = '//account.n11.dev/'
+        bottom.appendChild(manage)
+        popUp.appendChild(top)
+        popUp.appendChild(bottom)
+        document.body.appendChild(popUp)
+      }
+      let pfpDupe = pfp.cloneNode(true)
+      let val = false
+      pfpDupe.onclick = () => {togglePopUp(!val);val = !val}
+      document.body.onclick = e => {
+        const popup = document.querySelector('.popup');
+        // Check if click target is inside popup
+        // get classlist of e.target
+        let classList = e.target.classList
+        if (!popup.contains(e.target) && e.target !== pfpDupe && !e.target.classList.contains('mobilepfp') && val) {
+          e.preventDefault()
+          togglePopUp(false);
+          val = false;
+        }
+      }
+      // togglePopUp(!val);val = !val
+      console.log(pfpDupe)
       login.appendChild(pfpDupe)
       navbar.appendChild(login)
     } else {
@@ -91,10 +182,15 @@ let createNavbar = () => {
 
   let mobileOpt = document.createElement('div')
   mobileOpt.classList.add('mbopt')
-  mobileOpt.appendChild(pfp)
-  mobileOpt.innerHTML += `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu" id="mobile-open">
-          <path fill-rule="evenodd" d="M3 6.75A.75.75 0 0 1 3.75 6h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 6.75ZM3 12a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 12Zm0 5.25a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd"></path>
-        </svg>`
+  let mobilePfp = pfp.cloneNode(true)
+  mobilePfp.onclick = () => {
+    togglePopUp(!popupVal)
+  }
+  mobilePfp.classList.add('mobilepfp')
+  mobileOpt.appendChild(mobilePfp)
+  let menuSvg = document.createElement('svg')
+  menuSvg.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu" id="mobile-open">'+lines+'</svg>'
+  mobileOpt.appendChild(menuSvg)
   mobile.appendChild(mobileOpt)
 
   navbar.appendChild(mobile)
@@ -103,6 +199,50 @@ let createNavbar = () => {
   createMobileNav()
 }
 
+// Add this function after createNavbar but before using it
+const uploadPfp = async (file) => {
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('pfp', file);
+
+  try {
+    const response = await fetch('/api/user/updatepfp', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await response.json();
+    
+    if (data.error) {
+      alert(data.error);
+    } else {
+      // Update all pfp instances on the page
+      document.querySelectorAll('.pfp, .large-pfp').forEach(img => {
+        img.src = URL.createObjectURL(file);
+      });
+      // reload cache
+      const cacheName = 'n11-navbar';
+      const urlToCache = '/cache/navbar.js';
+      const cacheDuration = 3600 * 1000; // 3600 seconds in milliseconds
+
+      async function cachePage() {
+        const cache = await caches.open(cacheName);
+        const response = await fetch(urlToCache, { cache: 'reload' });
+        await cache.put(urlToCache, response);
+        console.log(`Cached ${urlToCache} at ${new Date().toLocaleTimeString()}`);
+      }
+
+      async function refreshCache() {
+        await cachePage();
+        setTimeout(refreshCache, cacheDuration);
+      }
+
+      // Start the cache refresh process
+      refreshCache();
+    }
+  } catch (err) {
+    alert('Failed to upload profile picture');
+  }
+}
 
 // Manage the navbar
 let navline
@@ -166,11 +306,6 @@ mobileMenuOpen.addEventListener('click', () => {
 })
 
 let s = false // closed
-
-
-let lines = `<path fill-rule="evenodd" d="M3 6.75A.75.75 0 0 1 3.75 6h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 6.75ZM3 12a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 12Zm0 5.25a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />`
-let x = `<path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />`
-
 
 // left: 37, up: 38, right: 39, down: 40,
 // spacebar: 32, pageup: 33, pagedown: 34, end: 35, home: 36
