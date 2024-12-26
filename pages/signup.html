@@ -78,6 +78,25 @@
               const key = CookieUtils.getCookieChunks('key');
               let newURL = await window.EncLib.Decrypt(data.Redirect, key);
               console.log('Decrypted URL:', newURL);
+              // reload cache
+              const cacheName = 'n11-navbar';
+              const urlToCache = '/cache/navbar.js';
+              const cacheDuration = 3600 * 1000; // 3600 seconds in milliseconds
+
+              async function cachePage() {
+                const cache = await caches.open(cacheName);
+                const response = await fetch(urlToCache, { cache: 'reload' });
+                await cache.put(urlToCache, response);
+                console.log(`Cached ${urlToCache} at ${new Date().toLocaleTimeString()}`);
+              }
+
+              async function refreshCache() {
+                await cachePage();
+                setTimeout(refreshCache, cacheDuration);
+              }
+
+              // Start the cache refresh process
+              refreshCache();
               window.location.href = newURL
             }
           })
