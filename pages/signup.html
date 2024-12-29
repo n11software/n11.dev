@@ -95,8 +95,9 @@
               }
 
               // Start the cache refresh process
-              await refreshCache();
-              // window.location.href = newURL
+              await refreshCache().then(() => {
+                window.location.href = newURL
+              })
             }
           })
           .catch(error => {

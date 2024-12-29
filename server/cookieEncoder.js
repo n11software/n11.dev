@@ -15,9 +15,10 @@ const CookieUtils = {
     }
     
     // Create Set-Cookie strings
-    cookies.push(`${name}_count=${chunks.length}; path=/`);
+    let tenyrs = 10 * 365 * 24 * 60 * 60;
+    cookies.push(`${name}_count=${chunks.length}; Max-Age=${tenyrs}; SameSite=None; Secure; path=/; `);
     chunks.forEach((chunk, index) => {
-      cookies.push(`${name}_${index}=${chunk}; path=/`);
+      cookies.push(`${name}_${index}=${chunk}; Max-Age=${tenyrs}; SameSite=None; Secure; path=/; `);
     });
     
     return cookies;
