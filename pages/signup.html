@@ -65,7 +65,7 @@
             document.querySelector('.next').style.padding = "0.5rem 1rem"
             if (data.error) {
               // Handle error
-              console.error(data.error)
+              alert(data.error)
               document.querySelector('.box').style.border = '1px solid #ff3838'
               document.querySelector('.box').style.padding = 'calc(.75rem - 1px) calc(1rem - 1px)'
             } else {
@@ -76,7 +76,7 @@
               // console.log('Cert:', data.Certificate);
               const key = CookieUtils.getCookieChunks('key');
               let newURL = await window.EncLib.Decrypt(data.Redirect, key);
-              console.log('Decrypted URL:', newURL);
+              alert('Decrypted URL:', newURL);
               // reload cache
               const cacheName = 'n11-navbar';
               const urlToCache = '/cache/navbar.js';
@@ -100,7 +100,7 @@
             }
           })
           .catch(error => {
-            console.error('Error:', error)
+            alert('Error:', error)
           })
         }
       }

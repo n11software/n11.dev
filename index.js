@@ -33,6 +33,10 @@ app.get('/signup', (req, res) => {
   res.sendFile(__dirname + '/pages/signup.html')
 })
 
+app.get('/cookies', (req, res) => {
+  res.json(req.cookies)
+})
+
 app.get('/cache/:name', async (req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=3600')
     let data, un, email
@@ -45,7 +49,7 @@ app.get('/cache/:name', async (req, res) => {
 
       const result = await makeRequest(`
         SELECT * FROM Users 
-        WHERE Username == '${username.toLowerCase()}'
+        WHERE Username == '${username}'
       `);
 
       if (result && result[0].result && result[0].result[0]) {
