@@ -33,7 +33,7 @@
 
       let username = document.querySelector('.email')
       let next = () => {
-        let value = username.value.trim()
+        let value = username.value.trim().toLowerCase()
         document.cookie = "username=" + value
         if (value.length == 0) {
           document.querySelector('.box').style.border = '1px solid #ff3838'
