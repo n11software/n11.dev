@@ -193,9 +193,6 @@ app.post('/api/user/create', async (req, res) => {
         let AllCookies = Cert.concat(Key).concat(Signature)
         res.setHeader('Set-Cookie', AllCookies)
         res.json({
-          "Certificate": Buffer.from(publicKey).toString('base64'),
-          "Key": Buffer.from(privateKey).toString('base64'),
-          "Signature": Buffer.from(signature).toString('base64'),
           "Redirect": redirURL
         });
       }
