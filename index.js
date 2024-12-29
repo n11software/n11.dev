@@ -183,6 +183,11 @@ app.post('/api/user/create', async (req, res) => {
       } else {
         // Original plan was to store the data in cookies but it is too large so we will use localStorage
         let redirURL = await EncLib.Encrypt("/profiles/" + e[1]["result"][0]["id"].split('Users:')[1], publicKey);
+        let Cert = CookieUtils.setCookieChunks('cert', Buffer.from(publicKey).toString('base64'))
+        let Key = CookieUtils.setCookieChunks('key', Buffer.from(privateKey).toString('base64'))
+        let Signature = CookieUtils.setCookieChunks('signature', Buffer.from(signature).toString('base64'))
+        let AllCookies = Cert.concat(Key).concat(Signature)
+        res.setHeader('Set-Cookie', AllCookies)
         res.json({
           "Certificate": Buffer.from(publicKey).toString('base64'),
           "Key": Buffer.from(privateKey).toString('base64'),
