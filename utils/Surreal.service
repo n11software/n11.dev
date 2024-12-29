@@ -1,0 +1,14 @@
+[Unit]
+Description=N11 LLC official server.
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=n11
+ExecStart=bash -c "cd /home/n11/n11.dev/;surreal start --user root --pass root --ns Development --db N11 rocksdb:n11.db"
+
+[Install]
+WantedBy=multi-user.target

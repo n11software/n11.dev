@@ -17,3 +17,6 @@ npm install
 # move the service file
 cp /home/n11/n11.dev/utils/N11.service /etc/systemd/system/n11.service
 systemctl enable --now n11
+
+cp /home/n11/n11.dev/utils/Surreal.service /etc/systemd/system/surreal.service
+systemctl enable --now surreal
