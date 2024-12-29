@@ -65,7 +65,7 @@
             document.querySelector('.next').style.padding = "0.5rem 1rem"
             if (data.error) {
               // Handle error
-              alert(data.error)
+              alert('Server error: ', data.error)
               document.querySelector('.box').style.border = '1px solid #ff3838'
               document.querySelector('.box').style.padding = 'calc(.75rem - 1px) calc(1rem - 1px)'
             } else {
@@ -100,7 +100,7 @@
             }
           })
           .catch(error => {
-            alert('Error:', error)
+            alert('Fetch Error:', error)
           })
         }
       }
