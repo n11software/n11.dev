@@ -1,0 +1,14 @@
+[Unit]
+Description=N11 LLC official server.
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=n11
+ExecStart=bash -c "cd /home/n11/n11.dev/;node . prod"
+
+[Install]
+WantedBy=multi-user.target
