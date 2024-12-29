@@ -1,10 +1,11 @@
-// spin up a basic express website
 let express = require('express')
 let app = express()
 let fs = require('fs')
 let crypto = require('crypto')
 var cookieParser = require('cookie-parser')
-app.use(cookieParser())
+const https = require('https');
+const http = require('http');
+const path = require('path');
 let compression = require('compression');
 let EncLib = require('./EncLib')
 const bodyParser = require('body-parser')
@@ -13,11 +14,34 @@ const sharp = require('sharp');
 const upload = multer({ storage: multer.memoryStorage() });
 const CookieUtils = require('./server/cookieEncoder.js');
 
+app.use(cookieParser())
 app.use(bodyParser.json());
 
 // setting up the static files directory
 app.use(express.static('public'))
 app.use(compression())
+
+// Add environment configuration
+const isProd = process.argv[2] === 'prod';
+const httpPort = 80;
+const httpsPort = 443;
+const devPort = 3000;
+
+// SSL certificate configuration for production
+const sslOptions = isProd ? {
+  key: fs.readFileSync(path.join(__dirname, 'ssl', 'privkey.pem')),
+  cert: fs.readFileSync(path.join(__dirname, 'ssl', 'cert.pem')),
+} : null;
+
+// HTTP to HTTPS redirect middleware for production
+if (isProd) {
+  app.use((req, res, next) => {
+    if (!req.secure) {
+      return res.redirect(`https://${req.headers.host}${req.url}`);
+    }
+    next();
+  });
+}
 
 // define a route to serve the HTML file
 app.get('/', (req, res) => {
@@ -313,6 +337,28 @@ app.get('/api/user/getpfp', async (req, res) => {
     }
 });
 
-app.listen(3000, () => {
+// Server startup based on environment
+if (isProd) {
+  // Create HTTPS server
+  const httpsServer = https.createServer(sslOptions, app);
+  httpsServer.listen(httpsPort, () => {
+    console.log(`HTTPS Server running on port ${httpsPort}`);
+  });
 
-})
+  // Create HTTP server for redirect
+  const httpServer = http.createServer((req, res) => {
+    res.writeHead(301, { 
+      'Location': `https://${req.headers.host}${req.url}` 
+    });
+    res.end();
+  });
+  
+  httpServer.listen(httpPort, () => {
+    console.log(`HTTP Server running on port ${httpPort} (redirecting to HTTPS)`);
+  });
+} else {
+  // Development mode - HTTP only
+  app.listen(devPort, () => {
+    console.log(`Development server running on port ${devPort}`);
+  });
+}
