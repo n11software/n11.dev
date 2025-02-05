@@ -1,0 +1,7 @@
+Build/
+*.crt
+*.pem
+*.key
+N11
+n11.db/
+.vscode/

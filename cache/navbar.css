@@ -1,0 +1,346 @@
+body {
+  background: #000;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+.navbar {
+  /* width: 100%; */
+  background: #000;
+  border-bottom: 1px solid #242424;
+  padding: 0rem 8rem 0rem 8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 69px;
+}
+
+.navbar > div > .login {
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+  padding: 0.75rem 1.5rem 0.75rem 1.5rem;
+  cursor: pointer;
+  background-color: white;
+  border-radius: 0.5rem;
+  font-family: monospace !important;
+  font-size: large;
+}
+
+.navbar .logo {
+  width: 4rem;
+}
+
+.navbar > :first-child {
+  display: flex;
+  align-items: center;
+}
+
+.navbar > :first-child > * {
+  margin-right: 2rem;
+}
+
+.navbar > :first-child > a {
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+  font-family: monospace !important;
+  font-size: large;
+}
+
+/* Select the logo */
+.navbar > :first-child > :first-child {
+  margin-right: 2rem;
+}
+
+.noref {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* allow click through */
+  pointer-events: none;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+}
+
+.noref > .center > .title {
+  font-family: monospace !important;
+  font-size: 4rem;
+  color: #fff;
+  font-weight: bold !important;
+}
+
+.mobile {
+  display: none;
+}
+
+.mobile > a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  font-family: monospace !important;
+  font-size: large;
+  text-decoration: none;
+}
+
+.menu {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: white;
+}
+
+.mobile .menu {
+  color: white; /* Ensure menu is white in mobile view */
+}
+
+.navbar-mobile {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background-color: black;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  display: none;
+}
+
+.pfp {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid #aaa;
+  cursor: pointer;
+}
+
+.mbopt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.navbar-mobile > a:not(.login) {
+  opacity: 0;
+}
+
+.navbar-mobile > .login {
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+  padding: 0.75rem 1.5rem 0.75rem 1.5rem;
+  cursor: pointer;
+  background-color: white;
+  border-radius: 0.5rem;
+  font-family: monospace !important;
+  font-size: x-large;
+  position: fixed;
+  left: 2rem;
+  right: 2rem;
+  text-align: center;
+  bottom: 2rem;
+}
+
+.navbar-mobile > a:first-child {
+  margin-top: 4rem;
+}
+
+.navbar-mobile > a {
+  margin-top: 3rem;
+  font-size: xx-large;
+  color: white;
+  font-weight: bold;
+  font-family: monospace !important;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.popup {
+  position: absolute;
+  top: 84px;
+  right: 8rem;
+  width: 20rem;
+  height: 30rem;
+  background-color: black;
+  border: 1px solid #242424;
+  border-radius: 0.5rem;
+  color: white;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 100;
+}
+
+.popup>div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.popup>div > img {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  border: 1px solid #aaa;
+  margin-top: 5rem;
+  cursor: pointer;
+}
+
+.popup>div > img:hover {
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.popup>div>.username {
+  font-size: 1.25rem;
+  margin-top: 1rem;
+  font-family: monospace !important;
+}
+
+.popup>div>.email {
+  font-size: 1rem;
+  margin-top: .25rem;
+  color: #aaa;
+  font-family: monospace !important;
+}
+
+.popup>div>.manage {
+  margin-bottom: 3rem;
+  font-size: 1rem;
+  text-decoration: none;
+  background-color: white;
+  padding: .5rem 1rem;
+  color: black;
+  text-align: center;
+  border-radius: 5px;
+  width: calc(10rem + 4px);
+  font-family: monospace !important;
+}
+.popup>div>.manage:hover {
+  text-decoration: underline;
+}
+
+.popup>div>.link {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  text-decoration: none;
+  border: 2px solid white;
+  padding: .5rem 1rem;
+  color: white;
+  width: 10rem;
+  text-align: center;
+  border-radius: 5px;
+  font-family: monospace !important;
+}
+.popup>div>.link:hover {
+  text-decoration: underline;
+}
+
+.close-button {
+  display: none;
+}
+
+
+/* Mobile */
+@media only screen and (max-width: 1000px) {
+  .pfp {
+    width: 2rem;
+    height: 2rem;
+  }
+  .navbar > *:not(.mobile) {
+    display: none;
+  }
+
+  .navbar > .mobile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-right: 1rem;
+    background-color: black;
+  }
+
+  .navbar {
+    padding: 0;
+    width: 100%;
+    background-color: black;
+  }
+
+  .noref > .center > .title {
+    font-size: 2rem;
+  }
+
+  .popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 0;
+    z-index: 1001;
+  }
+
+  .popup > .close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: white;
+    width: 2rem;
+    cursor: pointer;
+    font-family: monospace;
+    padding: 0.5rem;
+    display: block;
+    z-index: 1002;
+  }
+
+  .close-button>svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .popup > div > img {
+    width: 8rem;
+    height: 8rem;
+    margin-top: 8rem;
+  }
+
+  .popup > div > .username {
+    font-size: 1.75rem;
+  }
+
+  .popup > div > .email {
+    font-size: 1.25rem;
+  }
+
+  .popup > div > .link,
+  .popup > div > .manage {
+    width: calc(16rem + 4px);
+    font-size: 1.25rem;
+    padding: 0.75rem;
+  }
+}
+
+/* Animations */
+@keyframes fade-in {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}

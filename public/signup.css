@@ -1,0 +1,125 @@
+body {
+  background: black;
+  margin:0;
+  padding:0;
+  user-select: none;
+}
+
+div.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-family: monospace !important;
+  color: white;
+}
+
+div.center > div {
+  background-color: #141414;
+  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  border-radius: 10px;
+}
+
+div.center >div> span.description {
+  font-size: 1rem;
+  width: 20rem;
+  text-align: center;
+}
+
+div.center >div> span.title {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+a {
+  color: skyblue;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+.box {
+  display: flex;
+  align-items: center;
+  background-color: #2c2c2c;
+  border-radius: 5px;
+  padding: .75rem 1rem;
+  color: #aaa;
+  width: 230px;
+}
+
+.box > input {
+  border: 0;
+  background-color: #2c2c2c;
+  outline: none;
+  font-family: monospace !important;
+  color: #aaa;
+  flex: 1;
+}
+
+.box > span:not(span:has(svg)) {
+  flex: 1;
+}
+
+span>svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: .5rem;
+  width: 262px;
+}
+
+div.center > div > .buttons > .next {
+  background: white;
+  color: black;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 5px;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  flex: 1;
+}
+
+div.center > div > .buttons > .back {
+  background: #2c2c2c;
+  color: white;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 5px;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  flex: 1;
+}
+
+.loading {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1000px) {
+  div.center {
+    background-color: #141414;
+  }
+}
