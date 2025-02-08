@@ -3,6 +3,7 @@
 if [ ! -d .git/ ]; then
     sudo mkdir -p /var/lib/n11
     git clone https://github.com/N11Software/n11.dev /var/lib/n11
+    cd /var/lib/n11
 fi
 
 # check OS
@@ -32,21 +33,21 @@ if [ "$OS" = "Linux" ]; then
     if [ "$DISTRO" = "Ubuntu" ]; then
         if [ ! -f /usr/include/openssl/ssl.h ]; then
             echo "Installing openssl-dev"
-            sudo apt-get install libssl-dev
+            sudo apt-get install -y libssl-dev
         else
             echo "openssl-dev installed"
         fi
     elif [ "$DISTRO" = "Fedora" ]; then
         if [ ! -f /usr/include/openssl/ssl.h ]; then
             echo "Installing openssl-dev"
-            sudo dnf install openssl-devel
+            sudo dnf install -y openssl-devel
         else
             echo "openssl-dev installed"
         fi
     elif [ "$DISTRO" = "Arch" ]; then
         if [ ! -f /usr/include/openssl/ssl.h ]; then
             echo "Installing openssl-dev"
-            sudo pacman -S openssl
+            sudo pacman -S --noconfirm openssl
         else
             echo "openssl installed"
         fi
@@ -71,13 +72,13 @@ if [ ! -f /usr/lib/libz.so ]; then
     if [ "$OS" = "Linux" ]; then
         if [ "$DISTRO" = "Ubuntu" ]; then
             echo "Installing zlib"
-            sudo apt-get install zlib1g-dev
+            sudo apt-get install -y zlib1g-dev
         elif [ "$DISTRO" = "Fedora" ]; then
             echo "Installing zlib"
-            sudo dnf install zlib-devel
+            sudo dnf install -y zlib-devel
         elif [ "$DISTRO" = "Arch" ]; then
             echo "Installing zlib"
-            sudo pacman -S zlib
+            sudo pacman -S --noconfirm zlib
         else
             echo "OS not supported"
             exit 1
@@ -102,13 +103,13 @@ if [ ! -f /usr/lib/libbz2.so ]; then
     if [ "$OS" = "Linux" ]; then
         if [ "$DISTRO" = "Ubuntu" ]; then
             echo "Installing libbz2"
-            sudo apt-get install libbz2-dev
+            sudo apt-get install -y libbz2-dev
         elif [ "$DISTRO" = "Fedora" ]; then
             echo "Installing libbz2"
-            sudo dnf install bzip2-devel
+            sudo dnf install -y bzip2-devel
         elif [ "$DISTRO" = "Arch" ]; then
             echo "Installing libbz2"
-            sudo pacman -S bzip2
+            sudo pacman -S --noconfirm bzip2
         else
             echo "OS not supported"
             exit 1
@@ -133,13 +134,13 @@ if [ ! -f /usr/lib/libbrotlidec.so ]; then
     if [ "$OS" = "Linux" ]; then
         if [ "$DISTRO" = "Ubuntu" ]; then
             echo "Installing brotli"
-            sudo apt-get install libbrotli-dev
+            sudo apt-get install -y libbrotli-dev
         elif [ "$DISTRO" = "Fedora" ]; then
             echo "Installing brotli"
-            sudo dnf install brotli-devel
+            sudo dnf install -y brotli-devel
         elif [ "$DISTRO" = "Arch" ]; then
             echo "Installing brotli"
-            sudo pacman -S brotli
+            sudo pacman -S --noconfirm brotli
         else
             echo "OS not supported"
             exit 1
@@ -164,21 +165,21 @@ if [ "$OS" = "Linux" ]; then
     if [ "$DISTRO" = "Ubuntu" ]; then
         if [ ! -f /usr/bin/g++ ]; then
             echo "Installing build-essential"
-            sudo apt-get install build-essential
+            sudo apt-get install -y build-essential
         else
             echo "build-essential installed"
         fi
     elif [ "$DISTRO" = "Fedora" ]; then
         if [ ! -f /usr/bin/g++ ]; then
             echo "Installing GCC"
-            sudo dnf install gcc-c++
+            sudo dnf install -y gcc-c++
         else
             echo "GCC installed"
         fi
     elif [ "$DISTRO" = "Arch" ]; then
         if [ ! -f /usr/bin/g++ ]; then
             echo "Installing Dev Tools"
-            sudo pacman -S base-devel
+            sudo pacman -S --noconfirm base-devel
         else
             echo "Dev Tools installed"
         fi
@@ -215,13 +216,13 @@ if [ ! -f /usr/lib/liboqs.a ]; then
     if [ "$OS" = "Linux" ]; then
         if [ "$DISTRO" = "Ubuntu" ]; then
             echo "Installing OQS"
-            sudo apt-get install liboqs-dev
+            sudo apt-get install -y liboqs-dev
         elif [ "$DISTRO" = "Fedora" ]; then
             echo "Installing OQS"
-            sudo dnf install oqs-devel
+            sudo dnf install -y oqs-devel
         elif [ "$DISTRO" = "Arch" ]; then
             echo "Installing OQS"
-            sudo pacman -S oqs
+            sudo pacman -S --noconfirm oqs
         else
             echo "OS not supported"
             exit 1
@@ -246,13 +247,13 @@ if [ ! -f /usr/lib/libcryptopp.a ]; then
     if [ "$OS" = "Linux" ]; then
         if [ "$DISTRO" = "Ubuntu" ]; then
             echo "Installing CryptoPP"
-            sudo apt-get install libcrypto++-dev
+            sudo apt-get install -y libcrypto++-dev
         elif [ "$DISTRO" = "Fedora" ]; then
             echo "Installing CryptoPP"
-            sudo dnf install cryptopp-devel
+            sudo dnf install -y cryptopp-devel
         elif [ "$DISTRO" = "Arch" ]; then
             echo "Installing CryptoPP"
-            sudo pacman -S cryptopp
+            sudo pacman -S --noconfirm cryptopp
         else
             echo "OS not supported"
             exit 1
