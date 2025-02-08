@@ -21,7 +21,7 @@ n11::JsonValue DB(std::string query) {
         std::copy_n("root:root", 9, auth.begin());
         client.setHeader("Authorization", "Basic " + AES256::base64_encode(auth));
         client.setHeader("Accept", "application/json");
-        client.setHeader("surreal-ns", "Development");
+        client.setHeader("surreal-ns", "N11");
         client.setHeader("surreal-db", "N11");
         auto response = client.Post("http://localhost:8000/sql", query);
         if (response.getStatusCode() != 200) {
