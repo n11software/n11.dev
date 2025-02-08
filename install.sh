@@ -216,7 +216,14 @@ if [ ! -f /usr/lib/liboqs.a ]; then
     if [ "$OS" = "Linux" ]; then
         if [ "$DISTRO" = "Ubuntu" ]; then
             echo "Installing OQS"
-            sudo apt-get install -y liboqs-dev
+            sudo apt install astyle cmake gcc ninja-build libssl-dev python3-pytest python3-pytest-xdist unzip xsltproc doxygen graphviz python3-yaml valgrind
+            git clone -b main https://github.com/open-quantum-safe/liboqs.git
+            cd liboqs
+            mkdir build && cd build
+            cmake -GNinja ..
+            ninja
+            cd ../../
+            rm -r liboqs
         elif [ "$DISTRO" = "Fedora" ]; then
             echo "Installing OQS"
             sudo dnf install -y oqs-devel
