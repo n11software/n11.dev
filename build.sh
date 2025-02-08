@@ -1,6 +1,6 @@
 g++ Source/N11.cpp Source/Json.cpp \
     -o N11 \
-    -I../N11/Link/Include \
+    -I/usr/local/include/link/ \
     -L/usr/local/lib/ \
     -lssl -lcrypto -lcryptopp -llink -loqs \
     -pthread \
