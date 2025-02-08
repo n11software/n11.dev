@@ -2,7 +2,7 @@
 
 if [ ! -d .git/ ]; then
     sudo mkdir -p /var/lib/n11
-    git clone https://github.com/N11Software/N11.git /var/lib/n11
+    git clone https://github.com/N11Software/n11.dev /var/lib/n11
 fi
 
 # check OS
