@@ -1,7 +1,7 @@
 #!/bin/bash
 
 sudo mkdir -p /var/lib/n11
-git clone https://github.com/N11Software/N11.git /var/lib/n11
+git clone https://github.com/N11Software/n11.dev /var/lib/n11
 
 # check OS
 if [ "$(uname)" == "Darwin" ]; then
