@@ -222,6 +222,7 @@ if [ ! -f /usr/lib/liboqs.a ]; then
             mkdir build && cd build
             cmake -GNinja ..
             ninja
+            sudo ninja install
             cd ../../
             rm -r liboqs
         elif [ "$DISTRO" = "Fedora" ]; then
