@@ -53,6 +53,8 @@ a:hover {
   padding: .75rem 1rem;
   color: #aaa;
   width: 230px;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .box > input {
@@ -62,6 +64,7 @@ a:hover {
   font-family: monospace !important;
   color: #aaa;
   flex: 1;
+  max-width: calc(100% - 90px);
 }
 
 .box > span:not(span:has(svg)) {
@@ -121,5 +124,14 @@ div.center > div > .buttons > .back {
 @media (max-width: 1000px) {
   div.center {
     background-color: #141414;
+  }
+
+  input {
+    font-size: 16px;
+  }
+
+  div.center > div > .buttons > .back, div.center > div > .buttons > .next {
+    font-size: 18px;
+    padding: 0.75rem 1rem;
   }
 }

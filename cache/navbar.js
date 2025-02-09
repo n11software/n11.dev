@@ -125,7 +125,7 @@ let createNavbar = () => {
         let link = document.createElement('a')
         link.classList.add('link')
         link.textContent = 'Switch Account'
-        link.href = '//accounts.n11.dev/'
+        link.href = '/accounts'
         bottom.appendChild(link)
         let manage = document.createElement('a')
         manage.classList.add('manage')

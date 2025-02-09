@@ -8,8 +8,8 @@
 #include "ImageToPNG.hpp"
 
 struct User {
-    std::string CreatedAt, Cert, Key, PFP, Username;
-    bool LoggedIn;
+    std::string CreatedAt = "", Cert = "", Key = "", PFP = "", Username = "";
+    bool LoggedIn = false;
 };
 
 n11::JsonValue DB(std::string query) {
@@ -64,8 +64,8 @@ User GetUser(std::string username, std::string key) {
 
         // Extract date creation time
         std::string created = "";
-        if (userObj.hasKey("Password")) {
-            created = userObj["Password"].stringify();
+        if (userObj.hasKey("Created")) {
+            created = userObj["Created"].stringify();
             if (created.length() >= 2 && created.front() == '"' && created.back() == '"') {
                 created = created.substr(1, created.length() - 2);
             }
@@ -127,12 +127,128 @@ User GetUser(std::string username, std::string key) {
     }
 }
 
+User GetUser(std::string username) {
+    auto data = DB("SELECT * FROM Users WHERE Username = \""+username+"\"");
+    User user;
+    try {
+        if (data.hasKey("error") && data["error"].stringify() != "null") {
+            return user;
+        }
+
+        // The result array is in data[0]["result"]
+        if (!data[0].hasKey("result") || !data[0]["result"].isArray() || 
+            data[0]["result"].getArray().empty()) {
+            return user;
+        }
+
+        auto& userObj = data[0]["result"][0];
+        
+        // Extract username safely
+        std::string username = "";
+        if (userObj.hasKey("Username")) {
+            username = userObj["Username"].stringify();
+            if (username.length() >= 2 && username.front() == '"' && username.back() == '"') {
+                username = username.substr(1, username.length() - 2);
+            }
+        }
+
+        // Extract date creation time
+        std::string created = "";
+        if (userObj.hasKey("Created")) {
+            created = userObj["Created"].stringify();
+            if (created.length() >= 2 && created.front() == '"' && created.back() == '"') {
+                created = created.substr(1, created.length() - 2);
+            }
+        }
+
+        // Extract profile picture safely
+        std::string pfp = "{ \"error\": \"Not logged in\" }";
+        if (userObj.hasKey("ProfilePicture")) {
+            pfp = userObj["ProfilePicture"].stringify();
+            if (pfp.length() >= 2 && pfp.front() == '"' && pfp.back() == '"') {
+                pfp = pfp.substr(1, pfp.length() - 2);
+            }
+            // create a new json object with the profile picture
+            n11::JsonValue pfpJson;
+            pfpJson["pfp"] = pfp;
+            std::string json = pfpJson.stringify();
+            if (json.find("\"null\"") != std::string::npos) {
+                pfp = json.replace(json.find("\"null\""), 6, "null");
+            }
+            pfp = json;
+            // replace "null" with null
+        }
+        user.Username = username;
+        user.PFP = pfp;
+        user.CreatedAt = created;
+        return user;
+    } catch (...) {
+        return user;
+    }
+}
+
 int main() {
     try {
         Link::Server server(true);  // Enable metrics
         
         server.Get("/", [](const Link::Request& req, Link::Response& res) {
             res.sendFile("pages/index.html");
+        });
+        
+        server.Get("/accounts", [](const Link::Request& req, Link::Response& res) {
+            // Read json from cookie "offload"
+            std::string offloadStr = req.getCookie("offload");
+            if (offloadStr.empty()) {
+                res.redirect("/login");
+                return;
+            }
+            n11::JsonValue offload = n11::JsonValue::parse(offloadStr);
+            if (offload.hasKey("error")) {
+                res.json(offload.stringify());
+                return;
+            }
+            // store all the accounts in a json array
+            // remember it's stored as {"username": "password"}
+            std::map<std::string, std::string> accounts;
+            for (auto& [key, value] : offload.getObject()) {
+                std::string password = value.stringify();
+                if (password.length() >= 2 && password.front() == '"' && password.back() == '"') {
+                    password = password.substr(1, password.length() - 2);
+                }
+                accounts[key] = password;
+            }
+
+            std::ifstream file("pages/accounts.html");
+            std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            std::string rep;
+            for (auto& [key, value] : accounts) {
+                User user = GetUser(key, value);
+                if (!user.LoggedIn) continue;
+                // parse pfp json
+                n11::JsonValue pfpJson = n11::JsonValue::parse(user.PFP);
+                std::string pfp = pfpJson["pfp"].stringify();
+                if (pfp.length() >= 2 && pfp.front() == '"' && pfp.back() == '"') {
+                    pfp = pfp.substr(1, pfp.length() - 2);
+                } else {
+                    pfp = "null";
+                }
+                
+                rep += "<div class='account'> \
+                    <img src='"+(pfp=="null"?"/Default.jpg":"data:image/png;base64,"+pfp)+"' alt='Avatar' class='avatar'/>\
+                    <div>\
+                        <span class='name'>"+user.Username+"</span>\
+                        <span class='email'>"+user.Username+"@n11.dev</span>\
+                    </div>\
+                </div>";
+            }
+            // replace {accounts} with the generated accounts
+            size_t pos = content.find("{accounts}");
+            if (pos != std::string::npos) {
+                content.replace(pos, 10, rep);
+            }
+
+            res.setHeader("Content-Type", "text/html");
+            res.send(content);
         });
         
         server.Get("/login", [](const Link::Request& req, Link::Response& res) {
@@ -203,10 +319,6 @@ int main() {
 
             try {
                 if (convertToPNG(decoded, pngOutputData)) {
-                    // write to file
-                    std::ofstream file("test.png");
-                    file << pngOutputData;
-                    file.close();
                     std::vector<unsigned char> pngDataVec(pngOutputData.begin(), pngOutputData.end());
                     std::string encoded = AES256::base64_encode(pngDataVec);
                     // send to DB
@@ -243,7 +355,6 @@ int main() {
                 if (username.length() >= 2 && username.front() == '"' && username.back() == '"') {
                     username = username.substr(1, username.length() - 2);
                 }
-                std::cout << "Username: " << username << "\nPassword: " << password << std::endl;
                 User user = GetUser(username, password);
                 if (user.LoggedIn) {
                     res.json("{\"success\": true}");
@@ -255,8 +366,27 @@ int main() {
             }
         });
 
+        server.Get("/api/user/profile/[user]", [](const Link::Request& req, Link::Response& res) {
+            User user = GetUser(req.getParam("user"));
+            if (user.Username.empty()) {
+                res.json("{\"error\":\"User doesn't exist\"}");
+                return;
+            }
+            n11::JsonValue json;
+            json["username"] = user.Username;
+            json["created"] = user.CreatedAt;
+            json["pfp"] = user.PFP;
+            res.json(json.stringify());
+        });
+
         server.Post("/api/signup", [](const Link::Request& req, Link::Response& res) {
             try {
+                // Check if user exists
+                User u = GetUser(req.getCookie("username"));
+                if (u.Username == req.getCookie("username")) {
+                    res.json("{\"error\":\"User already exists\"}");
+                    return;
+                }
                 std::string rawBody = req.getBody();
                 size_t jsonStart = rawBody.find("\r\n\r\n");
                 if (jsonStart == std::string::npos) {

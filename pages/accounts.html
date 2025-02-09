@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Created and designed by Levi Hicks -->
+    <meta name="theme-color" content="#000000">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N11 - Accounts</title>
+    <link rel="stylesheet" href="/accounts.css"/>
+    <link rel="icon" type="image/png" href="/favicon-48x48.png" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="N11" />
+    <link rel="manifest" href="/site.webmanifest" />
+  </head>
+  <body>
+    <div class="center">
+      <div>
+        <span class="title">Switch Accounts</span>
+        <div class="accounts">
+            {accounts}
+        </div>
+      </div>
+    </div>
+    <script>
+        let reloadCache = async (file, callback) => {
+            // reload cache
+            const cacheName = 'n11-navbar';
+            const urlToCache = file;
+            const cacheDuration = 3600 * 1000; // 3600 seconds in milliseconds
+
+            async function cachePage() {
+            const cache = await caches.open(cacheName);
+            const response = await fetch(urlToCache, { cache: 'reload' });
+            await cache.put(urlToCache, response);
+            console.log(`Cached ${urlToCache} at ${new Date().toLocaleTimeString()}`);
+            }
+
+            async function refreshCache() {
+            await cachePage();
+            setTimeout(refreshCache, cacheDuration);
+            }
+
+            // Start the cache refresh process
+            await refreshCache().then(() => {
+                callback()
+            })
+        }
+        document.querySelectorAll('.account').forEach((account) => {
+            account.addEventListener('click', () => {
+                // get the username
+                let username = account.querySelector('.email').innerText;
+                username = username.split('@')[0];
+                // get the password from offload cookie json
+                let offloadCookie = document.cookie.split(';').find(cookie => cookie.includes('offload'));
+                let offloadJSON = JSON.parse(offloadCookie.split('=')[1]);
+                let password = offloadJSON[username];
+                let date = new Date();
+                date.setTime(date.getTime() + (180 * 24 * 60 * 60 * 1000));
+                document.cookie = `key=${password}; expires=${date.toUTCString()}`;
+                document.cookie = `username=${username}; expires=${date.toUTCString()}`;
+                reloadCache('/cache/navbar.js', () => {
+                    window.location.href = '/';
+                });
+            })
+        })
+    </script>
+    <script type="text/javascript" src="/cache/animations.js"></script>
+  </body>
+</html>

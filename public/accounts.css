@@ -1,0 +1,140 @@
+body {
+  background: black;
+  margin:0;
+  padding:0;
+  user-select: none;
+}
+
+div.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-family: monospace !important;
+  color: white;
+}
+
+div.center > div {
+  background-color: #141414;
+  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 3rem;
+  border-radius: 10px;
+}
+
+div.center >div> span.description {
+  font-size: 1rem;
+  width: 20rem;
+  text-align: center;
+}
+
+div.center >div> span.title {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+a {
+  color: skyblue;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+.accounts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+  width: 100%;
+  max-height: 185px;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.account {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  background-color: #2c2c2c;
+  padding: .5rem 1rem;
+  width: 100%;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.account > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: .5rem;
+}
+
+.account > div > .name {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.account > div > .email {
+  font-size: .75rem;
+  color: #aaa;
+}
+
+.account > img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+
+@media (max-width: 1000px) {
+  body {
+    max-height: 100vh;
+    overflow: hidden;
+  }
+  
+  div.center {
+    background-color: #141414;
+  }
+
+  .account {
+    border-radius: 10px;
+  }
+
+  .account > div > .name {
+    font-size: 1.5rem;
+  }
+
+  .account > div > .email {
+    font-size: 1rem;
+  }
+
+  .account > img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+  }
+
+  .title {
+    margin-top: 4rem;
+  }
+  
+  .accounts {
+    max-height: calc(100% - calc(64px - 1rem));
+    overflow-y: auto;
+    padding: 1rem;
+    margin-bottom: 4rem;
+  }
+  
+  div.center > div {
+    width: 80%;
+    padding: 0 2rem;
+    justify-content: flex-start;
+    height: 100%;
+  }
+}
