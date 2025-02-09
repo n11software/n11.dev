@@ -1,4 +1,4 @@
-- Add account sessions and switching using cookies instead of the DB like old N11
+- Make a better account switching UI and add editing
 - Add account management
 - Create SMTP server for sending emails
 - Create IMAP server for receiving emails
