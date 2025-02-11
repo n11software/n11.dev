@@ -1,4 +1,4 @@
-body>div {
+body>.settings {
     background-color: black;
     display: flex;
     min-height: 100vh;
@@ -7,7 +7,7 @@ body>div {
     padding: 2rem 8rem;
 }
 
-body>div>span.title {
+body>.settings>span.title {
     font-size: 1.25rem;
     font-weight: bold;
 }
