@@ -188,8 +188,50 @@ User GetUser(std::string username) {
 }
 
 int main() {
+    // read config file
+    std::ifstream file("config.json");
+    std::string config((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    n11::JsonValue configJson = n11::JsonValue::parse(config);
+    if (!configJson.hasKey("port")) {
+        std::cerr << "Failed to read config file" << std::endl;
+        return 1;
+    }
+    if (configJson["port"].stringify() == "null") {
+        std::cerr << "Failed to read port from config file" << std::endl;
+        return 1;
+    }
+    int port = std::stoi(configJson["port"].stringify());
+    if (!configJson.hasKey("cert")) {
+        std::cerr << "Failed to read config file" << std::endl;
+        return 1;
+    }
+    if (configJson["cert"].stringify() == "null") {
+        std::cerr << "Failed to read cert from config file" << std::endl;
+        return 1;
+    }
+    std::string cert = configJson["cert"].stringify();
+    if (!configJson.hasKey("key")) {
+        std::cerr << "Failed to read config file" << std::endl;
+        return 1;
+    }
+    if (configJson["cert"].stringify() == "null") {
+        std::cerr << "Failed to read cert from config file" << std::endl;
+        return 1;
+    }
+    if (configJson["key"].stringify() == "null") {
+        std::cerr << "Failed to read key from config file" << std::endl;
+        return 1;
+    }
+    std::string key = configJson["key"].stringify();
+    if (cert.length() >= 2 && cert.front() == '"' && cert.back() == '"') {
+        cert = cert.substr(1, cert.length() - 2);
+    }
+    if (key.length() >= 2 && key.front() == '"' && key.back() == '"') {
+        key = key.substr(1, key.length() - 2);
+    }
+
     try {
-        Link::Server server(true);  // Enable metrics
+        Link::Server server(true, cert, key);  // Enable metrics
         
         server.Get("/", [](const Link::Request& req, Link::Response& res) {
             res.sendFile("pages/index.html");
@@ -207,8 +249,6 @@ int main() {
                 res.json(offload.stringify());
                 return;
             }
-            // store all the accounts in a json array
-            // remember it's stored as {"username": "password"}
             std::map<std::string, std::string> accounts;
             for (auto& [key, value] : offload.getObject()) {
                 std::string password = value.stringify();
@@ -249,6 +289,10 @@ int main() {
 
             res.setHeader("Content-Type", "text/html");
             res.send(content);
+        });
+        
+        server.Get("/account", [](const Link::Request& req, Link::Response& res) {
+            res.sendFile("pages/account.html");
         });
         
         server.Get("/login", [](const Link::Request& req, Link::Response& res) {
@@ -517,7 +561,7 @@ int main() {
         });
 
         std::cout << "Server starting on port 3000..." << std::endl;
-        server.Listen(3000);
+        server.Listen(port);
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;

@@ -19,7 +19,7 @@
       <div>
         <span class="title">Switch Accounts</span>
         <div class="accounts">
-            {accounts}
+          {accounts}
         </div>
       </div>
     </div>
@@ -61,7 +61,13 @@
                 document.cookie = `key=${password}; expires=${date.toUTCString()}`;
                 document.cookie = `username=${username}; expires=${date.toUTCString()}`;
                 reloadCache('/cache/navbar.js', () => {
+                  let url = new URL(window.location.href);
+                  let redir = url.searchParams.get('redir');
+                  if (redir) {
+                    window.location.href = redir;
+                  } else {
                     window.location.href = '/';
+                  }
                 });
             })
         })

@@ -16,6 +16,17 @@ let pfp = document.createElement('img')
 let navLinks = {"Enterprise": "//enterprise.n11.dev", "Developers": "//developers.n11.dev", 
   "Mail": "//mail.n11.dev", "Social": "//social.n11.dev", "Store": "//store.n11.dev"}
 
+try {
+  if (nav === undefined) {
+    navLinks = {"Enterprise": "//enterprise.n11.dev", "Developers": "//developers.n11.dev", 
+      "Mail": "//mail.n11.dev", "Social": "//social.n11.dev", "Store": "//store.n11.dev"}
+  } else {
+    navLinks = nav
+  }
+} catch (e) {
+  
+}
+
 let createMobileNav = () => {
   let mobileNav = document.createElement('div')
   mobileNav.classList.add('navbar-mobile')
@@ -125,12 +136,13 @@ let createNavbar = () => {
         let link = document.createElement('a')
         link.classList.add('link')
         link.textContent = 'Switch Account'
-        link.href = '/accounts'
+        let url = window.location.href
+        link.href = '/accounts?redir=' + url
         bottom.appendChild(link)
         let manage = document.createElement('a')
         manage.classList.add('manage')
         manage.textContent = 'Manage Account'
-        manage.href = '//account.n11.dev/'
+        manage.href = '/account'
         bottom.appendChild(manage)
         popUp.appendChild(top)
         popUp.appendChild(bottom)
