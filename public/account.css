@@ -1,3 +1,7 @@
+body {
+    background-color: black;
+}
+
 body>.settings {
     background-color: black;
     display: flex;
@@ -5,9 +9,24 @@ body>.settings {
     color: white;
     font-family: monospace;
     padding: 2rem 8rem;
+    flex-direction: column;
 }
 
 body>.settings>span.title {
     font-size: 1.25rem;
     font-weight: bold;
+}
+
+body>.settings>div {
+    margin-top: 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+}
+
+body>.settings>div>.pfp {
+    width: 100px;
+    height: 100px;
 }

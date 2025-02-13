@@ -11,6 +11,8 @@ let x = `<path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.
 // pfp
 let hasPFP = false
 let pfp = document.createElement('img')
+let usr = '{username}'
+let eml = '{email}'
 
 // Create the navbar
 let navLinks = {"Enterprise": "//enterprise.n11.dev", "Developers": "//developers.n11.dev", 
@@ -123,14 +125,21 @@ let createNavbar = () => {
         pfpDupe.onclick = () => fileInput.click()
         pfpDupe.style.cursor = 'pointer'
         top.appendChild(pfpDupe)
+
+
+        document.querySelectorAll('.mypfp').forEach(img => {
+          if (img.hasAttribute("uploadable")) {
+            img.onclick = () => fileInput.click()
+          }
+        })
         
         let username = document.createElement('span')
         username.classList.add('username')
-        username.textContent = '{username}'
+        username.textContent = usr
         top.appendChild(username)
         let email = document.createElement('span')
         email.classList.add('email')
-        email.textContent = '{email}'
+        email.textContent = eml
         top.appendChild(email)
         let bottom = document.createElement('div')
         let link = document.createElement('a')
@@ -272,8 +281,13 @@ if (data.error != undefined) {
   hasPFP = false
 } else if (data.pfp !== undefined) {
   pfp.src = `data:image/png;base64,${data.pfp}`
+  document.querySelectorAll('.mypfp').forEach(img => {
+    img.src = `data:image/png;base64,${data.pfp}`
+  })
   if (data.pfp == null) {
-    pfp.src = `/Default.jpg`;
+    document.querySelectorAll('.mypfp').forEach(img => {
+      img.src = `/Default.jpg`
+    })
   }
   pfp.classList.add('pfp')
   hasPFP = true
@@ -388,6 +402,14 @@ document.addEventListener('DOMContentLoaded', () => {
       navline.style.opacity = '0'
     })
   })
+})
+
+document.querySelectorAll('.username').forEach(el => {
+  if (el.hasAttribute('myusername')) el.textContent = usr
+})
+
+document.querySelectorAll('.email').forEach(el => {
+  if (el.hasAttribute('myemail')) el.textContent = eml
 })
 
 // Logs
