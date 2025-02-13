@@ -344,7 +344,20 @@ int main() {
                 res.send(content);
                 return;
             }
-            res.sendFile("cache/" + filename);
+            // check if file exists in /public
+            std::string path = "cache/" + filename;
+            std::cout << path << std::endl;
+            if (path.find("..") != std::string::npos) {
+                res.status(403);
+                res.send("Forbidden");
+                return;
+            }
+            if (std::filesystem::exists(path) && std::filesystem::is_regular_file(path)) {
+                res.sendFile(path);
+                return;
+            }
+            res.status(404);
+            res.sendFile("pages/404.html");
         });
 
         server.Post("/api/user/updatepfp", [](const Link::Request& req, Link::Response& res) {
@@ -546,12 +559,17 @@ int main() {
         server.OnError(404, [](const Link::Request& req, Link::Response& res, int code) {
             // check if file exists in /public
             std::string path = "public" + req.getURL().getPath();
-            if (std::filesystem::exists(path)) {
+            if (path.find("..") != std::string::npos) {
+                res.status(403);
+                res.send("Forbidden");
+                return;
+            }
+            if (std::filesystem::exists(path) && std::filesystem::is_regular_file(path)) {
                 res.sendFile(path);
                 return;
             }
             res.status(code);
-            res.send(req.getMethod()+" "+req.getURL().getPath());
+            res.sendFile("pages/404.html");
         });
 
         // Default error handler for all other errors
