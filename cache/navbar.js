@@ -288,6 +288,7 @@ if (data.error != undefined) {
     document.querySelectorAll('.mypfp').forEach(img => {
       img.src = `/Default.jpg`
     })
+  pfp.src = `/Default.jpg`
   }
   pfp.classList.add('pfp')
   hasPFP = true

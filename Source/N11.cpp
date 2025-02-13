@@ -295,6 +295,92 @@ int main() {
             res.sendFile("pages/account.html");
         });
         
+        server.Get("/account/password", [](const Link::Request& req, Link::Response& res) {
+            res.sendFile("pages/account/password.html");
+        });
+
+        server.Post("/api/account/password", [](const Link::Request& req, Link::Response& res) {
+            std::string body = req.getBody();
+            if (body.empty()) {
+                res.status(400);
+                res.json("{\"error\":\"Empty request body\"}");
+                return;
+            }
+            // parse json
+            auto json = n11::JsonValue::parse(body);
+            std::string password = json["password"].stringify();
+            if (password.length() >= 2 && password.front() == '"' && password.back() == '"') {
+                password = password.substr(1, password.length() - 2);
+            }
+            User user = GetUser(req.getCookie("username"), req.getCookie("key"));
+            if (user.LoggedIn) {
+                // Encrypt user.cert and user.key with the new password
+                n11::JsonValue jsonKeyPair;
+                jsonKeyPair["publicKey"] = user.Cert;
+                jsonKeyPair["privateKey"] = user.Key;
+
+                // Encrypt the json with AES256
+                auto encrypted = AES256::encrypt(jsonKeyPair.stringify(), password);
+                if (encrypted.empty()) {
+                    res.json("{\"error\":\"AES256 encryption failed\"}");
+                    return;
+                }
+                // update the user's password
+                DB("UPDATE Users SET Password = \""+encrypted+"\" WHERE Username = \""+user.Username+"\"");
+                res.json("{\"success\":true}");
+            } else {
+                res.json("{\"error\":\"Failed to authenticate\"}");
+            }
+        });
+
+        server.Post("/api/account/verify", [](const Link::Request& req, Link::Response& res) {
+            std::string body = req.getBody();
+            if (body.empty()) {
+                res.status(400);
+                res.json("{\"error\":\"Empty request body\"}");
+                return;
+            }
+            // parse json
+            auto json = n11::JsonValue::parse(body);
+            std::string password = json["password"].stringify();
+            if (password.length() >= 2 && password.front() == '"' && password.back() == '"') {
+                password = password.substr(1, password.length() - 2);
+            }
+            User user = GetUser(req.getCookie("username"), password);
+            if (user.LoggedIn) {
+                res.json("{\"success\": true}");
+            } else {
+                res.json("{\"error\":\"Failed to authenticate\"}");
+            }
+        });
+
+        server.Get("/account/delete", [](const Link::Request& req, Link::Response& res) {
+            res.sendFile("pages/account/delete.html");
+        });
+
+        server.Post("/api/account/delete", [](const Link::Request& req, Link::Response& res) {
+            std::string body = req.getBody();
+            if (body.empty()) {
+                res.status(400);
+                res.json("{\"error\":\"Empty request body\"}");
+                return;
+            }
+            // parse json
+            auto json = n11::JsonValue::parse(body);
+            std::string password = json["password"].stringify();
+            if (password.length() >= 2 && password.front() == '"' && password.back() == '"') {
+                password = password.substr(1, password.length() - 2);
+            }
+            User user = GetUser(req.getCookie("username"), password);
+            if (user.LoggedIn) {
+                // delete the user
+                DB("DELETE Users WHERE Username = \""+user.Username+"\"");
+                res.json("{\"success\": true}");
+            } else {
+                res.json("{\"error\":\"Failed to authenticate\"}");
+            }
+        });
+        
         server.Get("/login", [](const Link::Request& req, Link::Response& res) {
             res.sendFile("pages/login.html");
         });
