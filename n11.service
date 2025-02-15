@@ -4,10 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=n11
-Group=n11
 WorkingDirectory=/var/lib/n11
-ExecStart=/usr/local/bin/N11
+ExecStart=/bin/bash -c "cd/var/lib/n11;/usr/local/bin/N11"
 Restart=always
 RestartSec=1
 
