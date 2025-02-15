@@ -4,8 +4,6 @@ After=network.target
 
 [Service]
 Type=simple
-User=n11
-Group=n11
 WorkingDirectory=/var/lib/n11
 ExecStart=/bin/bash -c "surreal start rocksdb:n11.db"
 Restart=always

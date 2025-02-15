@@ -323,7 +323,7 @@ if [ "$OS" = "Linux" ]; then
 
     # Create daemon if linux
     if [ ! -f /etc/systemd/system/surreal.service ]; then
-        sudo cp n11.service /etc/systemd/system/surreal.service
+        sudo cp surreal.service /etc/systemd/system/surreal.service
         sudo systemctl enable surreal
         sudo systemctl start surreal
     fi
