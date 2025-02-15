@@ -64,6 +64,30 @@
         const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         return hashHex;
     }
+
+    let reloadCache = async (file, callback) => {
+        // reload cache
+        const cacheName = 'n11-navbar';
+        const urlToCache = file;
+        const cacheDuration = 3600 * 1000; // 3600 seconds in milliseconds
+
+        async function cachePage() {
+        const cache = await caches.open(cacheName);
+        const response = await fetch(urlToCache, { cache: 'reload' });
+        await cache.put(urlToCache, response);
+        console.log(`Cached ${urlToCache} at ${new Date().toLocaleTimeString()}`);
+        }
+
+        async function refreshCache() {
+        await cachePage();
+        setTimeout(refreshCache, cacheDuration);
+        }
+
+        // Start the cache refresh process
+        await refreshCache().then(() => {
+            callback()
+        })
+    }
     let loading = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="loading" style="width: 1.95rem;color:2c2c2c;">
     <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
     </svg>`
@@ -92,21 +116,29 @@
             let offloadCookie = document.cookie.split(';').find(cookie => cookie.includes('offload'))
             let offloadJSON = JSON.parse(offloadCookie.split('=')[1])
             let username = document.cookie.split(';').find(cookie => cookie.includes('username')).split('=')[1];
-            delete offloadJSON[username];
+            delete offloadJSON[username]
             let date = new Date();
             date.setTime(date.getTime() + (180 * 24 * 60 * 60 * 1000));
-            document.cookie = `offload=${JSON.stringify(offloadJSON)}; expires=${date.toUTCString()}`
+            document.cookie = `offload=${JSON.stringify(offloadJSON)}; expires=${date.toUTCString()}; path=/`;
             // Select next account from offload
             let keys = Object.keys(offloadJSON);
             if (keys.length > 0) {
                 let password = offloadJSON[keys[0]];
-                document.cookie = `key=${password}; expires=${date.toUTCString()}`;
-                document.cookie = `username=${keys[0]}; expires=${date.toUTCString()}`;
+                document.cookie = `key=${password}; expires=${date.toUTCString()}; path=/`;
+                document.cookie = `username=${keys[0]}; expires=${date.toUTCString()}; path=/`;
             } else {
                 // delete offload
-                document.cookie = `offload=; expires=${date.toUTCString()}`;
+                document.cookie = `offload=; expires=${date.toUTCString()}; path=/`;
             }
-            // window.location.href = '/'
+            reloadCache('/cache/navbar.js', () => {
+                let url = new URL(window.location.href);
+                let redir = url.searchParams.get('redir');
+                if (redir) {
+                window.location.href = redir;
+                } else {
+                window.location.href = '/';
+                }
+            });
         } else {
             document.querySelector('.box').style.border = '1px solid #ff3838'
             document.querySelector('.box').style.padding = 'calc(.75rem - 1px) calc(1rem - 1px)'
