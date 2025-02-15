@@ -6,6 +6,8 @@ if [ ! -d .git/ ]; then
     cd /var/lib/n11
 fi
 
+git pull
+
 # check OS
 case "$(uname -s)" in
     Darwin*)
@@ -212,7 +214,7 @@ else
 fi
 
 # Check for lib OQS
-if [ ! -f /usr/lib/liboqs.a ]; then
+if [ ! -d /usr/local/include/oqs/ ]; then
     if [ "$OS" = "Linux" ]; then
         if [ "$DISTRO" = "Ubuntu" ]; then
             echo "Installing OQS"
