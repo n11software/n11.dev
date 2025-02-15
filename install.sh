@@ -309,11 +309,8 @@ sudo cp N11 /usr/local/bin/N11
 
 # Create daemon if linux
 if [ "$OS" = "Linux" ]; then
-    # Create daemon user
-    if [ ! -d /var/lib/n11 ]; then
-        sudo useradd -r -s /bin/false n11
-        sudo chown n11:n11 /var/lib/n11
-    fi
+    sudo useradd -G sudo n11
+    sudo chown n11:n11 /var/lib/n11
 
     # Create daemon if linux
     if [ ! -f /etc/systemd/system/n11.service ]; then

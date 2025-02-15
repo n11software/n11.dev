@@ -6,6 +6,7 @@
 #include <openssl/rand.h>
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
+#include <cstring>
 
 class AES256 {
 private:

@@ -292,10 +292,29 @@ int main() {
         });
         
         server.Get("/account", [](const Link::Request& req, Link::Response& res) {
-            res.sendFile("pages/account.html");
+            User user = GetUser(req.getCookie("username"), req.getCookie("key"));
+            if (!user.LoggedIn) {
+                res.redirect("/login");
+                return;
+            }
+            res.redirect("/account/settings");
+        });
+        
+        server.Get("/account/settings", [](const Link::Request& req, Link::Response& res) {
+            User user = GetUser(req.getCookie("username"), req.getCookie("key"));
+            if (!user.LoggedIn) {
+                res.redirect("/login");
+                return;
+            }
+            res.sendFile("pages/account/settings.html");
         });
         
         server.Get("/account/password", [](const Link::Request& req, Link::Response& res) {
+            User user = GetUser(req.getCookie("username"), req.getCookie("key"));
+            if (!user.LoggedIn) {
+                res.redirect("/login");
+                return;
+            }
             res.sendFile("pages/account/password.html");
         });
 
@@ -355,6 +374,11 @@ int main() {
         });
 
         server.Get("/account/delete", [](const Link::Request& req, Link::Response& res) {
+            User user = GetUser(req.getCookie("username"), req.getCookie("key"));
+            if (!user.LoggedIn) {
+                res.redirect("/login");
+                return;
+            }
             res.sendFile("pages/account/delete.html");
         });
 
@@ -392,10 +416,6 @@ int main() {
         server.Get("/link", [](const Link::Request& req, Link::Response& res) {
             res.sendFile("pages/link.html");
         });
-        
-        server.Get("/account/profile", [](const Link::Request& req, Link::Response& res) {
-            res.sendFile("pages/account/profile.html");
-        });
 
         server.Get("/cache/[filename]", [](const Link::Request& req, Link::Response& res) {
             std::string filename = req.getParam("filename");
@@ -432,7 +452,6 @@ int main() {
             }
             // check if file exists in /public
             std::string path = "cache/" + filename;
-            std::cout << path << std::endl;
             if (path.find("..") != std::string::npos) {
                 res.status(403);
                 res.send("Forbidden");
@@ -450,7 +469,6 @@ int main() {
             User user = GetUser(req.getCookie("username"), req.getCookie("key"));
             std::string body = req.getBody();
             if (body.empty()) {
-                std::cout << "Empty body received" << std::endl;
                 res.status(400);
                 res.json("{\"error\":\"Empty request body\"}");
                 return;
