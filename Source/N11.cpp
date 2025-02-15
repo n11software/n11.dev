@@ -206,9 +206,7 @@ void AddLog(std::string val, std::string ip, User user) {
     auto data = DB("SELECT Logs FROM Users WHERE Username = \""+user.Username+"\"");
     std::string logs = data[0]["result"][0]["Logs"].stringify();
     // parse
-    std::cout << logs << std::endl;
     n11::JsonValue logsJson = n11::JsonValue::parse(logs);
-    std::cout << logsJson.stringify() << std::endl;
     // Add new log
     auto log = n11::JsonValue();
     // get time in this format yyyy-MM-ddThh:mm:ss.msZ
@@ -216,9 +214,7 @@ void AddLog(std::string val, std::string ip, User user) {
     log["time"] = time;
     log["action"] = val;
     log["ip"] = ip;
-    std::cout << log.stringify() << std::endl;
     logsJson.push_back(log);
-    std::cout << "UPDATE Users SET Logs = '" << logsJson.stringify() + "' WHERE Username = \""+user.Username+"\"" << std::endl;
     DB("UPDATE Users SET Logs = '"+logsJson.stringify()+"' WHERE Username = \""+user.Username+"\"");
 }
 
@@ -550,19 +546,10 @@ int main() {
                     std::vector<unsigned char> pngDataVec(pngOutputData.begin(), pngOutputData.end());
                     std::string encoded = AES256::base64_encode(pngDataVec);
                     
-                    // Get existing logs
-                    auto data = DB("SELECT Logs FROM Users WHERE Username = \""+user.Username+"\"");
-                    std::string logs = data[0]["result"][0]["Logs"].stringify();
-                    if (logs.length() >= 2 && logs.front() == '"' && logs.back() == '"') {
-                        logs = logs.substr(1, logs.length() - 2);
-                    }
-                    // Remove the last ]
-                    logs = logs.substr(0, logs.length() - 1);
-                    // Add new log
-                    logs += ",{'time':'"+std::string(DB("SELECT time::now()")[0]["result"][0].stringify())+"','action':'Avatar Updated','ip':'"+req.getIP()+"'}]";
+                    AddLog("Profile Picture Updated", req.getIP(), user);
 
                     // send to DB with updated logs
-                    DB("UPDATE Users SET ProfilePicture = \""+encoded+"\", Logs = \""+logs+"\" WHERE Username = \""+user.Username+"\"");
+                    DB("UPDATE Users SET ProfilePicture = \""+encoded+"\" WHERE Username = \""+user.Username+"\"");
                 } else {
                     std::cerr << "Failed to convert image." << std::endl;
                     res.json("\"error\":\"Filetype not supported\"");
