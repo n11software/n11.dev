@@ -447,20 +447,6 @@ int main() {
             }
             User user = GetUser(req.getCookie("username"), password);
             if (user.LoggedIn) {
-                // Get existing logs first
-                auto data = DB("SELECT Logs FROM Users WHERE Username = \""+user.Username+"\"");
-                std::string logs = data[0]["result"][0]["Logs"].stringify();
-                if (logs.length() >= 2 && logs.front() == '"' && logs.back() == '"') {
-                    logs = logs.substr(1, logs.length() - 2);
-                }
-                // Remove the last ]
-                logs = logs.substr(0, logs.length() - 1);
-                // Add final log
-                logs += ",{'time':'"+std::string(DB("SELECT time::now()")[0]["result"][0].stringify())+"','action':'Account Deleted','ip':'"+req.getIP()+"'}]";
-
-                // Update logs before deletion
-                DB("UPDATE Users SET Logs = \""+logs+"\" WHERE Username = \""+user.Username+"\"");
-                // delete the user
                 DB("DELETE Users WHERE Username = \""+user.Username+"\"");
                 res.json("{\"success\": true}");
             } else {
