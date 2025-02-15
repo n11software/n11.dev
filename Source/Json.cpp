@@ -37,6 +37,7 @@ JsonValue JsonValue::parseValue(const std::string& json, size_t& pos) {
             }
             break;
         case '"':
+        case '\'':
             return JsonValue(parseString(json, pos));
         case '[':
             return JsonValue(parseArray(json, pos));
@@ -62,21 +63,22 @@ std::string JsonValue::stringify() const {
             oss << (v ? "true" : "false");
         } else if constexpr (std::is_same_v<T, double>) {
             oss << std::fixed << std::setprecision(6) << v;
-        } else if constexpr (std::is_same_v<T, std::string>) {
-            oss << '"';
-            for (char c : v) {
-                switch (c) {
-                    case '"': oss << "\\\""; break;
-                    case '\\': oss << "\\\\"; break;
-                    case '\b': oss << "\\b"; break;
-                    case '\f': oss << "\\f"; break;
-                    case '\n': oss << "\\n"; break;
-                    case '\r': oss << "\\r"; break;
-                    case '\t': oss << "\\t"; break;
-                    default: oss << c;
-                }
+            std::string str = oss.str();
+            if (str.find('.') != std::string::npos) {
+                str.erase(str.find_last_not_of('0') + 1, std::string::npos);
+                if (str.back() == '.') str.pop_back();
             }
-            oss << '"';
+            oss.str("");
+            oss << str;
+        } else if constexpr (std::is_same_v<T, std::string>) {
+            if (v.length() > 4 && v.substr(0, 4) == "RAW:") {
+                oss << v.substr(4);
+            } else if (v.find('{') == 0 || v.find('[') == 0) {
+                // This is already a JSON string or array, output as-is
+                oss << v;
+            } else {
+                oss << '"' << v << '"';
+            }
         } else if constexpr (std::is_same_v<T, Array>) {
             oss << '[';
             bool first = true;
@@ -105,8 +107,9 @@ std::string JsonValue::stringify() const {
 // ...
 
 std::string JsonValue::parseString(const std::string& json, size_t& pos) {
-    if (json[pos] != '"') {
-        throw std::runtime_error("Expected '\"' at start of string");
+    char quoteChar = json[pos];
+    if (quoteChar != '"' && quoteChar != '\'') {
+        throw std::runtime_error("Expected quote at start of string");
     }
     
     std::string result;
@@ -114,13 +117,14 @@ std::string JsonValue::parseString(const std::string& json, size_t& pos) {
     
     while (pos < json.length()) {
         char c = json[pos++];
-        if (c == '"') {
+        if (c == quoteChar) {
             return result;
         }
         if (c == '\\' && pos < json.length()) {
             char next = json[pos++];
             switch (next) {
-                case '"': result += '"'; break;
+                case '"':
+                case '\'': result += next; break;
                 case '\\': result += '\\'; break;
                 case '/': result += '/'; break;
                 case 'b': result += '\b'; break;
@@ -171,13 +175,16 @@ JsonValue::Array JsonValue::parseArray(const std::string& json, size_t& pos) {
     Array array;
     skipWhitespace(json, pos);
     
-    if (pos < json.length() && json[pos] == ']') {
-        pos++; // Skip ']'
-        return array;
-    }
-    
     while (pos < json.length()) {
-        array.push_back(parseValue(json, pos));
+        if (json[pos] == ']') {
+            pos++; // Skip ']'
+            return array;
+        }
+
+        // Parse array element
+        JsonValue element = parseValue(json, pos);
+        array.push_back(element);
+        
         skipWhitespace(json, pos);
         
         if (pos >= json.length()) {

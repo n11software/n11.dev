@@ -69,9 +69,68 @@ body>.settings>div>.email {
     gap: .25rem;
 }
 
+body>.privacy {
+    background-color: black;
+    display: flex;
+    min-height: 83vh;
+    color: white;
+    font-family: monospace;
+    padding: 2rem 8rem;
+    flex-direction: column;
+}
+
+body>.privacy>span.title {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+body>.privacy>div {
+    margin-top: 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+    justify-content: center;
+    align-items: center;
+}
+
+body>.privacy>div>.logs-table {
+    width: 100%;
+    max-width: 800px;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 2rem;
+}
+
+body>.privacy>div>.logs-table th,
+body>.privacy>div>.logs-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #333;
+}
+
+body>.privacy>div>.logs-table tr:last-child td {
+    border-bottom: none;
+}
+
+body>.privacy>div>.logs-table th {
+    background-color: white;
+    color: black;
+    font-weight: bold;
+}
+
+body>.privacy>div>.logs-table tr {
+    background-color: black;
+}
+
+body>.privacy>div>.logs-table tr:hover {
+    background-color: #111;
+}
+
 /* Mobile */
 @media only screen and (max-width: 1000px) {
-    body>.settings {
+    body>.settings, body>.privacy {
         padding: 2rem 2rem;
     }
 }

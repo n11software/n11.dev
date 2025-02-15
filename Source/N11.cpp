@@ -6,9 +6,23 @@
 #include <filesystem>
 #include <fstream>
 #include "ImageToPNG.hpp"
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+
+std::string getCurrentTimeISO8601() {
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+
+    std::stringstream ss;
+    ss << std::put_time(std::gmtime(&in_time_t), "%Y-%m-%dT%H:%M:%S");
+    ss << '.' << std::setw(3) << std::setfill('0') << ms.count() << 'Z';
+    return ss.str();
+}
 
 struct User {
-    std::string CreatedAt = "", Cert = "", Key = "", PFP = "", Username = "";
+    std::string CreatedAt = "", Cert = "", Key = "", PFP = "", Username = "", Logs = "";
     bool LoggedIn = false;
 };
 
@@ -120,6 +134,7 @@ User GetUser(std::string username, std::string key) {
         user.Username = username;
         user.PFP = pfp;
         user.CreatedAt = created;
+        user.Logs = userObj["Logs"].stringify();
         return user;
     } catch (...) {
         user.LoggedIn = false;
@@ -185,6 +200,26 @@ User GetUser(std::string username) {
     } catch (...) {
         return user;
     }
+}
+
+void AddLog(std::string val, std::string ip, User user) {
+    auto data = DB("SELECT Logs FROM Users WHERE Username = \""+user.Username+"\"");
+    std::string logs = data[0]["result"][0]["Logs"].stringify();
+    // parse
+    std::cout << logs << std::endl;
+    n11::JsonValue logsJson = n11::JsonValue::parse(logs);
+    std::cout << logsJson.stringify() << std::endl;
+    // Add new log
+    auto log = n11::JsonValue();
+    // get time in this format yyyy-MM-ddThh:mm:ss.msZ
+    std::string time = getCurrentTimeISO8601();
+    log["time"] = time;
+    log["action"] = val;
+    log["ip"] = ip;
+    std::cout << log.stringify() << std::endl;
+    logsJson.push_back(log);
+    std::cout << "UPDATE Users SET Logs = '" << logsJson.stringify() + "' WHERE Username = \""+user.Username+"\"" << std::endl;
+    DB("UPDATE Users SET Logs = '"+logsJson.stringify()+"' WHERE Username = \""+user.Username+"\"");
 }
 
 int main() {
@@ -309,6 +344,24 @@ int main() {
             res.sendFile("pages/account/settings.html");
         });
         
+        server.Get("/account/privacy", [](const Link::Request& req, Link::Response& res) {
+            User user = GetUser(req.getCookie("username"), req.getCookie("key"));
+            if (!user.LoggedIn) {
+                res.redirect("/login");
+                return;
+            }
+            // get pages/account/privacy.html
+            std::ifstream file("pages/account/privacy.html");
+            std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            // replace {data} with the user's logs
+            size_t pos = content.find("{data}");
+            if (pos != std::string::npos) {
+                content.replace(pos, 6, user.Logs);
+            }
+            res.setHeader("Content-Type", "text/html");
+            res.send(content);
+        });
+        
         server.Get("/account/password", [](const Link::Request& req, Link::Response& res) {
             User user = GetUser(req.getCookie("username"), req.getCookie("key"));
             if (!user.LoggedIn) {
@@ -344,7 +397,8 @@ int main() {
                     res.json("{\"error\":\"AES256 encryption failed\"}");
                     return;
                 }
-                // update the user's password
+                AddLog("Password Changed", req.getIP(), user);
+                // update the user's password and logs
                 DB("UPDATE Users SET Password = \""+encrypted+"\" WHERE Username = \""+user.Username+"\"");
                 res.json("{\"success\":true}");
             } else {
@@ -397,6 +451,19 @@ int main() {
             }
             User user = GetUser(req.getCookie("username"), password);
             if (user.LoggedIn) {
+                // Get existing logs first
+                auto data = DB("SELECT Logs FROM Users WHERE Username = \""+user.Username+"\"");
+                std::string logs = data[0]["result"][0]["Logs"].stringify();
+                if (logs.length() >= 2 && logs.front() == '"' && logs.back() == '"') {
+                    logs = logs.substr(1, logs.length() - 2);
+                }
+                // Remove the last ]
+                logs = logs.substr(0, logs.length() - 1);
+                // Add final log
+                logs += ",{'time':'"+std::string(DB("SELECT time::now()")[0]["result"][0].stringify())+"','action':'Account Deleted','ip':'"+req.getIP()+"'}]";
+
+                // Update logs before deletion
+                DB("UPDATE Users SET Logs = \""+logs+"\" WHERE Username = \""+user.Username+"\"");
                 // delete the user
                 DB("DELETE Users WHERE Username = \""+user.Username+"\"");
                 res.json("{\"success\": true}");
@@ -482,8 +549,20 @@ int main() {
                 if (convertToPNG(decoded, pngOutputData)) {
                     std::vector<unsigned char> pngDataVec(pngOutputData.begin(), pngOutputData.end());
                     std::string encoded = AES256::base64_encode(pngDataVec);
-                    // send to DB
-                    DB("UPDATE Users SET ProfilePicture = \""+encoded+"\" WHERE Username = \""+user.Username+"\"");
+                    
+                    // Get existing logs
+                    auto data = DB("SELECT Logs FROM Users WHERE Username = \""+user.Username+"\"");
+                    std::string logs = data[0]["result"][0]["Logs"].stringify();
+                    if (logs.length() >= 2 && logs.front() == '"' && logs.back() == '"') {
+                        logs = logs.substr(1, logs.length() - 2);
+                    }
+                    // Remove the last ]
+                    logs = logs.substr(0, logs.length() - 1);
+                    // Add new log
+                    logs += ",{'time':'"+std::string(DB("SELECT time::now()")[0]["result"][0].stringify())+"','action':'Avatar Updated','ip':'"+req.getIP()+"'}]";
+
+                    // send to DB with updated logs
+                    DB("UPDATE Users SET ProfilePicture = \""+encoded+"\", Logs = \""+logs+"\" WHERE Username = \""+user.Username+"\"");
                 } else {
                     std::cerr << "Failed to convert image." << std::endl;
                     res.json("\"error\":\"Filetype not supported\"");
@@ -518,11 +597,14 @@ int main() {
                 }
                 User user = GetUser(username, password);
                 if (user.LoggedIn) {
+                    // Get logs
+                    AddLog("Logged In", req.getIP(), user);
                     res.json("{\"success\": true}");
                 } else {
                     res.json("{\"error\":\"Failed to authenticate\"}");
                 }
-            } catch (...) {
+            } catch (const std::exception& e) {
+                std::cerr << "Error: " << e.what() << std::endl;
                 res.json("{\"error\":\"Unknown error\"}");
             }
         });
@@ -598,18 +680,16 @@ int main() {
                 }
                 user["Username"] = username;
                 user["Password"] = encrypted;
-                user["Created"] = "time::now()";
-                user["ProfilePicture"] = "NULL";
-
+                user["Created"].setRaw("time::now()");
+                user["ProfilePicture"].setRaw("NULL");
+                std::string logs = "[{'time':'"+getCurrentTimeISO8601()+"','action':'Account Created', 'ip':'"+req.getIP()+"'}]";
+                user["Logs"] = logs;
                 std::string end = user.stringify();
-                // replace the "\"time::now()\"" with "time::now()"
-                end = end.replace(end.find("\"time::now()\""), 13, "time::now()");
-                // replace the "\"NULL\"" with "NULL"
-                end = end.replace(end.find("\"NULL\""), 6, "NULL");
 
                 DB("INSERT INTO Users "+end).stringify();
                 res.json("{\"success\":\"true\"}");
             } catch (const std::exception& e) {
+                std::cerr << "Error: " << e.what() << std::endl;
                 res.status(400);
                 res.json("{\"error\":\"Invalid JSON format\"}");
             }
@@ -682,7 +762,7 @@ int main() {
             res.send("Oops! Something went wrong: " + std::to_string(code));
         });
 
-        std::cout << "Server starting on port 3000..." << std::endl;
+        std::cout << "Server starting on port "<< port <<"..." << std::endl;
         server.Listen(port);
     }
     catch (const std::exception& e) {

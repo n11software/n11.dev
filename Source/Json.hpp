@@ -23,6 +23,7 @@ public:
     JsonValue(int value) : value_(static_cast<double>(value)) {}
     JsonValue(long value) : value_(static_cast<double>(value)) {}
     JsonValue(const char* value) : value_(std::string(value)) {}
+    JsonValue(std::initializer_list<JsonValue> arr) : value_(Array(arr)) {}
 
     static JsonValue parse(const std::string& json);
     std::string stringify() const;
@@ -69,6 +70,11 @@ public:
         return *this;
     }
 
+    JsonValue& setRaw(const std::string& raw) {
+        value_ = std::string("RAW:") + raw;
+        return *this;
+    }
+
     template<typename T>
     JsonValue& operator=(T value) {
         *this = JsonValue(value);
@@ -106,6 +112,55 @@ public:
             return obj->find(key) != obj->end();
         }
         return false;
+    }
+
+    void push_back(const JsonValue& value) {
+        if (!isArray()) {
+            value_ = Array();
+        }
+        std::get<Array>(value_).push_back(value);
+    }
+    
+    bool empty() const {
+        if (auto arr = std::get_if<Array>(&value_)) {
+            return arr->empty();
+        }
+        return true;
+    }
+    
+    size_t size() const {
+        if (auto arr = std::get_if<Array>(&value_)) {
+            return arr->size();
+        }
+        return 0;
+    }
+    
+    Array::iterator begin() {
+        if (auto arr = std::get_if<Array>(&value_)) {
+            return arr->begin();
+        }
+        throw std::runtime_error("Not an array");
+    }
+    
+    Array::iterator end() {
+        if (auto arr = std::get_if<Array>(&value_)) {
+            return arr->end();
+        }
+        throw std::runtime_error("Not an array");
+    }
+
+    Array::const_iterator begin() const {
+        if (auto arr = std::get_if<Array>(&value_)) {
+            return arr->begin();
+        }
+        throw std::runtime_error("Not an array");
+    }
+    
+    Array::const_iterator end() const {
+        if (auto arr = std::get_if<Array>(&value_)) {
+            return arr->end();
+        }
+        throw std::runtime_error("Not an array");
     }
 
 private:
