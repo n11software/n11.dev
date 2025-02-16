@@ -5,3 +5,4 @@ Build/
 N11
 n11.db/
 .vscode/
+deploy_new.sh
