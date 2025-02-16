@@ -18,12 +18,47 @@
     <div class="settings">
         <span class="title">Settings</span>
         <div>
-          <img src="/Default.jpg" alt="PFP" class="pfp mypfp" uploadable/>
-          <span class="username" myusername></span>
-          <span class="email" myemail></span>
-          <div class="buttons">
-            <a href="/account/password">Change Password</a>
-            <a href="/account/delete" class="delete">Delete Account</a>
+          <div class="settings-container">
+            <div class="security-section">
+              <img src="/Default.jpg" alt="PFP" class="pfp mypfp" uploadable/>
+              <span class="username" myusername></span>
+              <span class="email" myemail></span>
+              
+              <div class="input-group">
+                <label>Display Name</label>
+                <input type="text" id="display-name" placeholder="Your display name">
+              </div>
+              
+              <div class="input-group">
+                <label>Bio</label>
+                <input type="text" id="bio" placeholder="Tell us about yourself">
+              </div>
+            </div>
+
+            <div class="security-section">
+              <div class="section-header">
+                <h3>Preferences</h3>
+              </div>
+              <div class="checkbox-options">
+                <label class="checkbox-row">
+                  <span>Email Notifications</span>
+                  <input type="checkbox" id="email-notify">
+                  <span class="checkmark"></span>
+                </label>
+                <label class="checkbox-row">
+                  <span>Show Online Status</span>
+                  <input type="checkbox" id="online-status">
+                  <span class="checkmark"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="security-section">
+              <div class="buttons">
+                <a href="/account/password">Change Password</a>
+                <a href="/account/delete" class="delete">Delete Account</a>
+              </div>
+            </div>
           </div>
         </div>
     </div>

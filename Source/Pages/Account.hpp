@@ -82,6 +82,15 @@ void AccountSettings(const Link::Request& req, Link::Response& res) {
     res.sendFile("pages/account/settings.html");
 }
 
+void AccountSecurity(const Link::Request& req, Link::Response& res) {
+    User user = GetUser(req.getCookie("username"), req.getCookie("key"));
+    if (!user.LoggedIn) {
+        res.redirect("/login");
+        return;
+    }
+    res.sendFile("pages/account/security.html");
+}
+
 void AccountPrivacy(const Link::Request& req, Link::Response& res) {
     User user = GetUser(req.getCookie("username"), req.getCookie("key"));
     if (!user.LoggedIn) {

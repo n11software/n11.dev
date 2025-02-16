@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Created and designed by Levi Hicks -->
+    <meta name="theme-color" content="#000000">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N11 - Security</title>
+    <link rel="stylesheet" href="/account.css"/>
+    <link rel="icon" type="image/png" href="/favicon-48x48.png" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="N11" />
+    <link rel="manifest" href="/site.webmanifest" />
+  </head>
+  <body>
+    <div class="settings">
+        <span class="title">Security - Not Finished</span>
+        <div>
+          <div class="security-container">
+            <div class="security-section">
+              <div class="section-header">
+                <h3>Pin Protection</h3>
+                <label class="toggle">
+                  <input type="checkbox" id="passcode-toggle">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              
+              <div class="passcode-settings" id="passcode-settings">
+                <div class="input-group">
+                  <label>4-Digit Pin</label>
+                  <input type="password" 
+                         id="passcode-input" 
+                         maxlength="4" 
+                         pattern="\d{4}"
+                         placeholder="••••">
+                </div>
+                
+                <div class="input-group">
+                  <label>Require Pin Every</label>
+                  <select id="timeout-setting">
+                    <option value="5">5 minutes</option>
+                    <option value="15">15 minutes</option>
+                    <option value="30">30 minutes</option>
+                    <option value="60">1 hour</option>
+                    <option value="1d">1 day</option>
+                  </select>
+                </div>
+
+                <div class="status-info">
+                  <span>Last Pin entry:</span>
+                  <span id="last-entry-time">Never</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="security-section">
+              <div class="section-header">
+                <h3>Login Notifications</h3>
+                <label class="toggle">
+                  <input type="checkbox" id="notify-toggle">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <p class="setting-description">Get emailed when someone logs into your account from a new device or location.</p>
+            </div>
+          </div>
+        </div>
+    </div>
+    <script>
+        let nav = {"Settings": "/account/settings", "Privacy": "/account/privacy", "Security": "/account/security"}
+    </script>
+    <script type="text/javascript" src="/cache/footer.js"></script>
+    <script type="text/javascript" src="/cache/navbar.js"></script>
+  </body>
+</html>
