@@ -380,22 +380,25 @@ int main() {
             if (password.length() >= 2 && password.front() == '"' && password.back() == '"') {
                 password = password.substr(1, password.length() - 2);
             }
+            std::cout << "Password: " << password << std::endl;
             User user = GetUser(req.getCookie("username"), req.getCookie("key"));
             if (user.LoggedIn) {
                 // Encrypt user.cert and user.key with the new password
                 n11::JsonValue jsonKeyPair;
-                jsonKeyPair["publicKey"] = user.Cert;
-                jsonKeyPair["privateKey"] = user.Key;
-
+                jsonKeyPair["publicKey"].setRaw(user.Cert);
+                jsonKeyPair["privateKey"].setRaw(user.Key);
                 // Encrypt the json with AES256
                 auto encrypted = AES256::encrypt(jsonKeyPair.stringify(), password);
                 if (encrypted.empty()) {
                     res.json("{\"error\":\"AES256 encryption failed\"}");
                     return;
                 }
-                AddLog("Password Changed", req.getIP(), user);
-                // update the user's password and logs
+                if (AES256::decrypt(encrypted, password) != jsonKeyPair.stringify()) {
+                    res.json("{\"error\":\"AES256 decryption failed\"}");
+                    return;
+                }
                 DB("UPDATE Users SET Password = \""+encrypted+"\" WHERE Username = \""+user.Username+"\"");
+                AddLog("Password Changed", req.getIP(), user);
                 res.json("{\"success\":true}");
             } else {
                 res.json("{\"error\":\"Failed to authenticate\"}");

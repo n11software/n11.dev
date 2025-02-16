@@ -40,6 +40,10 @@
         let da = '{data}'
         let logs = JSON.parse(da)
         let table = document.querySelector('.logs-table tbody')
+        // sort data by data.date
+        logs.sort((a, b) => {
+            return new Date(b.time) - new Date(a.time)
+        })
         logs.forEach(log => {
             let row = document.createElement('tr')
             let ip = document.createElement('td')
