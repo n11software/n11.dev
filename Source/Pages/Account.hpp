@@ -92,9 +92,14 @@ void AccountPrivacy(const Link::Request& req, Link::Response& res) {
     std::ifstream file("pages/account/privacy.html");
     std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     // replace {data} with the user's logs
+    std::string logs = user.Logs;
+    if (logs.length() >= 2 && logs.front() == '"' && logs.back() == '"') {
+        logs = logs.substr(1, logs.length() - 2);
+    }
+    logs = KyberHelper::decrypt(logs, user.Key);
     size_t pos = content.find("{data}");
     if (pos != std::string::npos) {
-        content.replace(pos, 6, user.Logs);
+        content.replace(pos, 6, logs);
     }
     res.setHeader("Content-Type", "text/html");
     res.send(content);
@@ -122,7 +127,6 @@ void APIPassword(const Link::Request& req, Link::Response& res) {
     if (password.length() >= 2 && password.front() == '"' && password.back() == '"') {
         password = password.substr(1, password.length() - 2);
     }
-    std::cout << "Password: " << password << std::endl;
     User user = GetUser(req.getCookie("username"), req.getCookie("key"));
     if (user.LoggedIn) {
         // Encrypt user.cert and user.key with the new password
@@ -139,8 +143,8 @@ void APIPassword(const Link::Request& req, Link::Response& res) {
             res.json("{\"error\":\"AES256 decryption failed\"}");
             return;
         }
-        DB("UPDATE Users SET Password = \""+encrypted+"\" WHERE Username = \""+user.Username+"\"");
         AddLog("Password Changed", req.getIP(), user);
+        DB("UPDATE Users SET Password = \""+encrypted+"\" WHERE Username = \""+user.Username+"\"");
         res.json("{\"success\":true}");
     } else {
         res.json("{\"error\":\"Failed to authenticate\"}");

@@ -82,7 +82,13 @@ User GetUser(std::string username, std::string key) {
                 return user;
             }
             user.Cert = keyPair["publicKey"].stringify();
+            if (user.Cert.length() >= 2 && user.Cert.front() == '"' && user.Cert.back() == '"') {
+                user.Cert = user.Cert.substr(1, user.Cert.length() - 2);
+            }
             user.Key = keyPair["privateKey"].stringify();
+            if (user.Key.length() >= 2 && user.Key.front() == '"' && user.Key.back() == '"') {
+                user.Key = user.Key.substr(1, user.Key.length() - 2);
+            }
             user.LoggedIn = true;
         } catch (const std::exception& e) {
             user.LoggedIn = false;
@@ -180,6 +186,11 @@ User GetUser(std::string username) {
 void AddLog(std::string val, std::string ip, User user) {
     auto data = DB("SELECT Logs FROM Users WHERE Username = \""+user.Username+"\"");
     std::string logs = data[0]["result"][0]["Logs"].stringify();
+    if (logs.length() >= 2 && logs.front() == '"' && logs.back() == '"') {
+        logs = logs.substr(1, logs.length() - 2);
+    }
+    // decrypt
+    logs = KyberHelper::decrypt(logs, user.Key);
     // parse
     n11::JsonValue logsJson = n11::JsonValue::parse(logs);
     // Add new log
@@ -190,5 +201,7 @@ void AddLog(std::string val, std::string ip, User user) {
     log["action"] = val;
     log["ip"] = ip;
     logsJson.push_back(log);
-    DB("UPDATE Users SET Logs = '"+logsJson.stringify()+"' WHERE Username = \""+user.Username+"\"");
+    // encrypt
+    logs = KyberHelper::encrypt(logsJson.stringify(), user.Cert).ciphertext;
+    DB("UPDATE Users SET Logs = '"+logs+"' WHERE Username = \""+user.Username+"\"");
 }

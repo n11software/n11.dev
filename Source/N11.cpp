@@ -77,6 +77,29 @@ int main() {
         server.Post("/api/login", APILogin);
         server.Get("/api/user/profile/[user]", APIProfile);
         server.Post("/api/signup", APISignup);
+
+        server.Get("/enctest", [](const Link::Request& req, Link::Response& res) {
+            // Get user
+            User user = GetUser(req.getCookie("username"), req.getCookie("key"));
+            if (!user.LoggedIn) {
+                res.redirect("/login");
+                return;
+            }
+            // Encrypt message
+            std::string message = user.Logs;
+            if (message.length() >= 2 && message.front() == '"' && message.back() == '"') {
+                message = message.substr(1, message.length() - 2);
+            }
+            // decrypt message
+            std::string dec = KyberHelper::decrypt(message, user.Key);
+            if (dec.empty()) {
+                res.json("{\"error\":\"Decryption failed\"}");
+                return;
+            }
+            n11::JsonValue json;
+            json["decrypted"].setRaw(dec);
+            res.json(json.stringify());
+        });
         
         server.Get("/login", [](const Link::Request& req, Link::Response& res) {
             res.sendFile("pages/login.html");

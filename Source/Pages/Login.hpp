@@ -70,8 +70,8 @@ void APISignup(const Link::Request& req, Link::Response& res) {
         user["Password"] = encrypted;
         user["Created"].setRaw("time::now()");
         user["ProfilePicture"].setRaw("NULL");
-        std::string logs = "[{'time':'"+getCurrentTimeISO8601()+"','action':'Account Created', 'ip':'"+req.getIP()+"'}]";
-        user["Logs"] = logs;
+        std::string logs = "[{\"time\":\""+getCurrentTimeISO8601()+"\",\"action\":\"Account Created\", \"ip\":\""+req.getIP()+"\"}]";
+        user["Logs"] = KyberHelper::encrypt(logs, keyPair.publicKey).ciphertext;
         std::string end = user.stringify();
 
         DB("INSERT INTO Users "+end).stringify();
