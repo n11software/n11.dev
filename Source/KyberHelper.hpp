@@ -22,9 +22,8 @@ public:
     };
 
     struct MessagePair {
-        std::string ciphertext;
-        std::string sharedSecret;
-        std::string error;  // Add error field
+        std::string ciphertext;  // Will now contain both ciphertext and shared secret
+        std::string error;
         bool success() const { return error.empty(); }
     };
 
@@ -62,7 +61,7 @@ public:
     static MessagePair encrypt(const std::string& message, const std::string& publicKeyB64) {
         try {
             OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_kyber_1024);
-            if (!kem) return MessagePair{"", "", "Failed to initialize Kyber1024"};
+            if (!kem) return MessagePair{"", "Failed to initialize Kyber1024"};
 
             std::vector<uint8_t> public_key = base64Decode(publicKeyB64);
             uint8_t *ciphertext = new uint8_t[kem->length_ciphertext];
@@ -72,33 +71,39 @@ public:
                 delete[] ciphertext;
                 delete[] shared_secret;
                 OQS_KEM_free(kem);
-                return MessagePair{"", "", "Encryption failed"};
+                return MessagePair{"", "Encryption failed"};
             }
 
             // First encrypt the message
             std::string encrypted_message = aesEncrypt(message, shared_secret, kem->length_shared_secret);
 
-            // Prepare result
-            MessagePair result = {
-                base64Encode(ciphertext, kem->length_ciphertext),
-                base64Encode(reinterpret_cast<const unsigned char*>(encrypted_message.data()), 
-                            encrypted_message.length()),
-                ""  // No error
-            };
+            // Combine ciphertext and encrypted message
+            std::string combined_cipher;
+            combined_cipher.append(base64Encode(ciphertext, kem->length_ciphertext));
+            combined_cipher.append(".");  // Use dot as delimiter
+            combined_cipher.append(base64Encode(reinterpret_cast<const unsigned char*>(encrypted_message.data()), 
+                                              encrypted_message.length()));
 
             delete[] ciphertext;
             delete[] shared_secret;
             OQS_KEM_free(kem);
-            return result;
+            return MessagePair{combined_cipher, ""};
         } catch (const std::exception& e) {
-            return MessagePair{"", "", std::string("Encryption failed: ") + e.what()};
+            return MessagePair{"", std::string("Encryption failed: ") + e.what()};
         }
     }
 
-    static std::string decrypt(const std::string& ciphertextB64, 
-                             const std::string& encryptedMessageB64,
-                             const std::string& privateKeyB64) {
+    static std::string decrypt(const std::string& combinedCipherB64, const std::string& privateKeyB64) {
         try {
+            // Split the combined string
+            size_t delimiter_pos = combinedCipherB64.find('.');
+            if (delimiter_pos == std::string::npos) {
+                throw std::runtime_error("Invalid ciphertext format");
+            }
+
+            std::string ciphertextB64 = combinedCipherB64.substr(0, delimiter_pos);
+            std::string encryptedMessageB64 = combinedCipherB64.substr(delimiter_pos + 1);
+
             OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_kyber_1024);
             if (!kem) throw std::runtime_error("Failed to initialize Kyber1024");
 
@@ -139,8 +144,8 @@ public:
             if (!msgPair.success()) {
                 return false;
             }
-            std::string decryptedSecret = decrypt(msgPair.ciphertext, msgPair.sharedSecret, privateKeyB64);
-            return !decryptedSecret.empty() && decryptedSecret == "test";
+            std::string decryptedMessage = decrypt(msgPair.ciphertext, privateKeyB64);
+            return !decryptedMessage.empty() && decryptedMessage == "test";
         } catch (const std::exception&) {
             return false;
         }

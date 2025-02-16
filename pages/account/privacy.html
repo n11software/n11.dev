@@ -51,7 +51,28 @@
             let date = document.createElement('td')
             ip.innerText = log.ip
             action.innerText = log.action
-            date.innerText = log.time
+
+            let logTime = new Date(log.time)
+            let now = new Date()
+            let timeDiff = Math.abs(now - logTime)
+            let timeDiffSeconds = Math.floor(timeDiff / 1000)
+            let timeDiffMinutes = Math.floor(timeDiff / (1000 * 60))
+            let timeDiffHours = Math.floor(timeDiff / (1000 * 60 * 60))
+
+            if (timeDiffHours < 24) {
+                if (timeDiffMinutes < 60) {
+                    if (timeDiffSeconds < 60) {
+                        date.innerText = `${timeDiffSeconds} secs ago`
+                    } else {
+                        date.innerText = `${timeDiffMinutes} mins ago`
+                    }
+                } else {
+                    date.innerText = `${timeDiffHours} hours ago`
+                }
+            } else {
+                date.innerText = logTime.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true })
+            }
+
             row.appendChild(ip)
             row.appendChild(action)
             row.appendChild(date)

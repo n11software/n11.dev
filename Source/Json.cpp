@@ -74,17 +74,38 @@ std::string JsonValue::stringify() const {
             if (v.length() > 4 && v.substr(0, 4) == "RAW:") {
                 oss << v.substr(4);
             } else if (v.find('{') == 0 || v.find('[') == 0) {
-                // This is already a JSON string or array, output as-is
+                // Already JSON-formatted string
                 oss << v;
             } else {
-                oss << '"' << v << '"';
+                // Handle special characters and escape quotes
+                oss << '"';
+                for (char c : v) {
+                    switch (c) {
+                        case '"': oss << "\\\""; break;
+                        case '\'': oss << "'"; break;  // Don't escape single quotes
+                        case '\\': oss << "\\\\"; break;
+                        case '\b': oss << "\\b"; break;
+                        case '\f': oss << "\\f"; break;
+                        case '\n': oss << "\\n"; break;
+                        case '\r': oss << "\\r"; break;
+                        case '\t': oss << "\\t"; break;
+                        default: oss << c;
+                    }
+                }
+                oss << '"';
             }
         } else if constexpr (std::is_same_v<T, Array>) {
             oss << '[';
             bool first = true;
             for (const auto& elem : v) {
                 if (!first) oss << ',';
-                oss << elem.stringify();
+                std::string elemStr = elem.stringify();
+                if (elemStr.length() >= 2 && elemStr.front() == '"' && elemStr.back() == '"' 
+                    && (elemStr.find('{') != std::string::npos || elemStr.find('[') != std::string::npos)) {
+                    // Remove outer quotes for nested JSON
+                    elemStr = elemStr.substr(1, elemStr.length() - 2);
+                }
+                oss << elemStr;
                 first = false;
             }
             oss << ']';
@@ -93,7 +114,14 @@ std::string JsonValue::stringify() const {
             bool first = true;
             for (const auto& [key, value] : v) {
                 if (!first) oss << ',';
-                oss << '"' << key << "\":" << value.stringify();
+                oss << '"' << key << "\":";
+                std::string valueStr = value.stringify();
+                if (valueStr.length() >= 2 && valueStr.front() == '"' && valueStr.back() == '"'
+                    && (valueStr.find('{') != std::string::npos || valueStr.find('[') != std::string::npos)) {
+                    // Remove outer quotes for nested JSON
+                    valueStr = valueStr.substr(1, valueStr.length() - 2);
+                }
+                oss << valueStr;
                 first = false;
             }
             oss << '}';
