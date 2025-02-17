@@ -47,11 +47,14 @@ void Accounts(const Link::Request& req, Link::Response& res) {
         }
         
         rep += "<div class='account'> \
-            <img src='"+(pfp=="null"?"/Default.jpg":"data:image/png;base64,"+pfp)+"' alt='Avatar' class='avatar'/>\
-            <div>\
-                <span class='name'>"+user.Username+"</span>\
-                <span class='email'>"+user.Username+"@n11.dev</span>\
+            <div class='account-content'>\
+                <img src='"+(pfp=="null"?"/Default.jpg":"data:image/png;base64,"+pfp)+"' alt='Avatar' class='avatar'/>\
+                <div>\
+                    <span class='name'>"+user.Username+"</span>\
+                    <span class='email'>"+user.Username+"@n11.dev</span>\
+                </div>\
             </div>\
+            <button class='remove-btn'>Remove</button>\
         </div>";
     }
     // replace {accounts} with the generated accounts

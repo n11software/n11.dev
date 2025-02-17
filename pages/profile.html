@@ -133,13 +133,99 @@
           text-align: center;
         }
       }
+
+      @keyframes shine {
+        from {
+          background-position: -200% center;
+        }
+        to {
+          background-position: 200% center;
+        }
+      }
+
+      .skeleton {
+        background: linear-gradient(
+          90deg,
+          #111 0%,
+          #222 50%,
+          #111 100%
+        );
+        background-size: 200% 100%;
+        animation: shine 2s infinite linear;
+      }
+
+      .skeleton-header {
+        display: flex;
+        align-items: center;
+        gap: 3rem;
+        margin-bottom: 2rem;
+      }
+
+      .skeleton-pfp {
+        width: 140px;
+        height: 140px;
+        border-radius: 70px;
+      }
+
+      .skeleton-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .skeleton-name {
+        height: 2rem;
+        width: 200px;
+        border-radius: 4px;
+      }
+
+      .skeleton-email {
+        height: 1rem;
+        width: 150px;
+        border-radius: 4px;
+      }
+
+      .skeleton-status {
+        height: 1rem;
+        width: 100px;
+        border-radius: 12px;
+        margin-top: 0.5rem;
+      }
+
+      .skeleton-bio {
+        height: 4rem;
+        width: 100%;
+        border-radius: 4px;
+        margin-top: 2rem;
+      }
+
+      @media (max-width: 600px) {
+        .skeleton-header {
+          flex-direction: column;
+          text-align: center;
+          gap: 1.5rem;
+        }
+
+        .skeleton-info {
+          align-items: center;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="profile">
       <div class="profile-container">
         <div class="security-section" id="profile-content">
-          <!-- Content will be inserted here by JavaScript -->
+          <!-- Initial loading state -->
+          <div class="skeleton-header">
+            <div class="skeleton skeleton-pfp"></div>
+            <div class="skeleton-info">
+              <div class="skeleton skeleton-name"></div>
+              <div class="skeleton skeleton-email"></div>
+            </div>
+          </div>
+          <div class="skeleton skeleton-bio"></div>
         </div>
       </div>
     </div>
@@ -164,6 +250,7 @@
           const statusText = data.online ? 'Online' : 'Offline';
           
           let pfp = '/Default.jpg';
+          console.log(data.pfp);
           if (data.pfp && !data.pfp.error) {
             pfp = 'data:image/png;base64,'+data.pfp.pfp;
           }

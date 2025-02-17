@@ -17,60 +17,105 @@
   <body>
     <div class="center">
       <div>
-        <span class="title">Switch Accounts</span>
+        <div class="header">
+          <span class="title">Switch Accounts</span>
+          <button class="edit-btn" onclick="toggleEdit()">Edit</button>
+        </div>
         <div class="accounts">
           {accounts}
         </div>
+        <a href="/login" class="add-account">Add Account</a>
       </div>
     </div>
     <script>
-        let reloadCache = async (file, callback) => {
-            // reload cache
-            const cacheName = 'n11-navbar';
-            const urlToCache = file;
-            const cacheDuration = 3600 * 1000; // 3600 seconds in milliseconds
+      let isEditing = false;
 
-            async function cachePage() {
-            const cache = await caches.open(cacheName);
-            const response = await fetch(urlToCache, { cache: 'reload' });
-            await cache.put(urlToCache, response);
-            console.log(`Cached ${urlToCache} at ${new Date().toLocaleTimeString()}`);
-            }
+      function toggleEdit() {
+        isEditing = !isEditing;
+        document.querySelector('.edit-btn').textContent = isEditing ? 'Done' : 'Edit';
+        document.querySelectorAll('.account').forEach(account => {
+          if (isEditing) {
+            account.querySelector('.remove-btn').style.cursor = 'pointer';
+            account.querySelector('.remove-btn').style.opacity = '1';
+            account.querySelector('.remove-btn').onclick = e => {
+              e.stopPropagation();
+              const username = account.querySelector('.email').textContent.split('@')[0];
+              removeAccount(username);
+            };
+          } else {
+            account.querySelector('.remove-btn').onclick = null;
+            account.querySelector('.remove-btn').style.cursor = 'default';
+            account.querySelector('.remove-btn').style.opacity = '0';
+          }
+        });
+      }
 
-            async function refreshCache() {
-            await cachePage();
-            setTimeout(refreshCache, cacheDuration);
-            }
+      function removeAccount(username) {
+        let offloadCookie = document.cookie.split(';').find(cookie => cookie.includes('offload'));
+        let offloadJSON = JSON.parse(offloadCookie.split('=')[1]);
+        delete offloadJSON[username];
+        
+        // Update cookie
+        let date = new Date();
+        date.setTime(date.getTime() + (180 * 24 * 60 * 60 * 1000));
+        document.cookie = `offload=${JSON.stringify(offloadJSON)}; expires=${date.toUTCString()}`;
+        
+        // Reload page
+        location.reload();
+      }
 
-            // Start the cache refresh process
-            await refreshCache().then(() => {
-                callback()
-            })
+      let reloadCache = async (file, callback) => {
+        // reload cache
+        const cacheName = 'n11-navbar';
+        const urlToCache = file;
+        const cacheDuration = 3600 * 1000; // 3600 seconds in milliseconds
+
+        async function cachePage() {
+          const cache = await caches.open(cacheName);
+          const response = await fetch(urlToCache, { cache: 'reload' });
+          await cache.put(urlToCache, response);
+          console.log(`Cached ${urlToCache} at ${new Date().toLocaleTimeString()}`);
         }
-        document.querySelectorAll('.account').forEach((account) => {
-            account.addEventListener('click', () => {
-                // get the username
-                let username = account.querySelector('.email').innerText;
-                username = username.split('@')[0];
-                // get the password from offload cookie json
-                let offloadCookie = document.cookie.split(';').find(cookie => cookie.includes('offload'));
-                let offloadJSON = JSON.parse(offloadCookie.split('=')[1]);
-                let password = offloadJSON[username];
-                let date = new Date();
-                date.setTime(date.getTime() + (180 * 24 * 60 * 60 * 1000));
-                document.cookie = `key=${password}; expires=${date.toUTCString()}`;
-                document.cookie = `username=${username}; expires=${date.toUTCString()}`;
-                reloadCache('/cache/navbar.js', () => {
-                  let url = new URL(window.location.href);
-                  let redir = url.searchParams.get('redir');
-                  if (redir) {
-                    window.location.href = redir;
-                  } else {
-                    window.location.href = '/';
-                  }
-                });
-            })
+
+        async function refreshCache() {
+          await cachePage();
+          setTimeout(refreshCache, cacheDuration);
+        }
+
+        // Start the cache refresh process
+        await refreshCache().then(() => {
+          callback()
         })
+      }
+
+      document.querySelectorAll('.account').forEach((account) => {
+        const removeBtn = account.querySelector('.remove-btn');
+        const accountContent = account.querySelector('.account-content');
+
+        accountContent?.addEventListener('click', () => {
+          if (isEditing) return;
+          // get the username
+          let username = account.querySelector('.email').innerText;
+          username = username.split('@')[0];
+          // get the password from offload cookie json
+          let offloadCookie = document.cookie.split(';').find(cookie => cookie.includes('offload'));
+          let offloadJSON = JSON.parse(offloadCookie.split('=')[1]);
+          let password = offloadJSON[username];
+          let date = new Date();
+          date.setTime(date.getTime() + (180 * 24 * 60 * 60 * 1000));
+          document.cookie = `key=${password}; expires=${date.toUTCString()}`;
+          document.cookie = `username=${username}; expires=${date.toUTCString()}`;
+          reloadCache('/cache/navbar.js', () => {
+            let url = new URL(window.location.href);
+            let redir = url.searchParams.get('redir');
+            if (redir) {
+              window.location.href = redir;
+            } else {
+              window.location.href = '/';
+            }
+          });
+        });
+      });
     </script>
     <script type="text/javascript" src="/cache/animations.js"></script>
   </body>
