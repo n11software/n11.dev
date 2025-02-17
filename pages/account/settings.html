@@ -26,12 +26,12 @@
               
               <div class="input-group">
                 <label>Display Name</label>
-                <input type="text" id="display-name" placeholder="Your display name">
+                <input type="text" id="display-name" value="{displayname}" placeholder="Your display name">
               </div>
               
               <div class="input-group">
                 <label>Bio</label>
-                <input type="text" id="bio" placeholder="Tell us about yourself">
+                <input type="text" id="bio" value="{bio}" placeholder="Tell us about yourself">
               </div>
             </div>
 
@@ -42,12 +42,12 @@
               <div class="checkbox-options">
                 <label class="checkbox-row">
                   <span>Email Notifications</span>
-                  <input type="checkbox" id="email-notify">
+                  <input type="checkbox" id="email-notify" {notifications}>
                   <span class="checkmark"></span>
                 </label>
                 <label class="checkbox-row">
                   <span>Show Online Status</span>
-                  <input type="checkbox" id="online-status">
+                  <input type="checkbox" id="online-status" {status}>
                   <span class="checkmark"></span>
                 </label>
               </div>
@@ -64,6 +64,64 @@
     </div>
     <script>
         let nav = {"Settings": "/account/settings", "Privacy": "/account/privacy", "Security": "/account/security"}
+
+        // Track changed settings
+        let changedSettings = {};
+        
+        // Elements to track
+        const inputs = {
+            'displayName': document.getElementById('display-name'),
+            'bio': document.getElementById('bio'),
+            'emailNotify': document.getElementById('email-notify'),
+            'onlineStatus': document.getElementById('online-status')
+        };
+
+        // Add change listeners to all inputs
+        Object.entries(inputs).forEach(([key, element]) => {
+            if (!element) return;
+            
+            const handleChange = () => {
+                changedSettings[key] = element.type === 'checkbox' ? element.checked : element.value;
+                sendUpdates();
+            };
+
+            element.addEventListener('change', handleChange);
+            element.addEventListener('input', handleChange);
+        });
+
+        // Debounce function to prevent too many API calls
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Send updates to the API
+        const sendUpdates = debounce(() => {
+            if (Object.keys(changedSettings).length === 0) return;
+
+            fetch('/api/account/settings/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(changedSettings)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear the changes after successful update
+                    changedSettings = {};
+                }
+            })
+            .catch(error => console.error('Error updating settings:', error));
+        }, 500); // Wait 500ms after last change before sending
     </script>
     <script type="text/javascript" src="/cache/footer.js"></script>
     <script type="text/javascript" src="/cache/navbar.js"></script>

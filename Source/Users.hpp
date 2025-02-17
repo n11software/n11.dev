@@ -20,8 +20,8 @@ std::string getCurrentTimeISO8601() {
 }
 
 struct User {
-    std::string CreatedAt = "", Cert = "", Key = "", PFP = "", Username = "", Logs = "";
-    bool LoggedIn = false;
+    std::string CreatedAt = "", Cert = "", Key = "", PFP = "", Username = "", Logs = "", DisplayName = "", DataRetention = "", Pin = "", PinTime = "", Bio = "";
+    bool GeneralNotifs = false, LoginNotifs = false, PinStatus = false, ShowStatus = false, SaveHistory = false, LoggedIn = false;
 };
 
 User GetUser(std::string username, std::string key) {
@@ -116,6 +116,34 @@ User GetUser(std::string username, std::string key) {
         user.PFP = pfp;
         user.CreatedAt = created;
         user.Logs = userObj["Logs"].stringify();
+        if (user.Logs.length() >= 2 && user.Logs.front() == '"' && user.Logs.back() == '"') {
+            user.Logs = user.Logs.substr(1, user.Logs.length() - 2);
+        }
+        user.DisplayName = userObj["DisplayName"].stringify();
+        if (user.DisplayName.length() >= 2 && user.DisplayName.front() == '"' && user.DisplayName.back() == '"') {
+            user.DisplayName = user.DisplayName.substr(1, user.DisplayName.length() - 2);
+        }
+        user.DataRetention = userObj["DataRetention"].stringify();
+        if (user.DataRetention.length() >= 2 && user.DataRetention.front() == '"' && user.DataRetention.back() == '"') {
+            user.DataRetention = user.DataRetention.substr(1, user.DataRetention.length() - 2);
+        }
+        user.Pin = userObj["Pin"].stringify();
+        if (user.Pin.length() >= 2 && user.Pin.front() == '"' && user.Pin.back() == '"') {
+            user.Pin = user.Pin.substr(1, user.Pin.length() - 2);
+        }
+        user.PinTime = userObj["PinTime"].stringify();
+        if (user.PinTime.length() >= 2 && user.PinTime.front() == '"' && user.PinTime.back() == '"') {
+            user.PinTime = user.PinTime.substr(1, user.PinTime.length() - 2);
+        }
+        user.GeneralNotifs = userObj["GeneralNotifs"].stringify() == "true";
+        user.LoginNotifs = userObj["LoginNotifs"].stringify() == "true";
+        user.PinStatus = userObj["PinStatus"].stringify() == "true";
+        user.ShowStatus = userObj["ShowStatus"].stringify() == "true";
+        user.SaveHistory = userObj["SaveHistory"].stringify() == "true";
+        user.Bio = userObj["Bio"].stringify();
+        if (user.Bio.length() >= 2 && user.Bio.front() == '"' && user.Bio.back() == '"') {
+            user.Bio = user.Bio.substr(1, user.Bio.length() - 2);
+        }
         return user;
     } catch (...) {
         user.LoggedIn = false;

@@ -257,6 +257,7 @@ body>.privacy>div>.logs-table tr:hover {
 #passcode-input {
     letter-spacing: 0.5rem;
     font-size: 1.2rem;
+    padding: .5rem 0;
     text-align: center;
 }
 
@@ -579,7 +580,7 @@ body>.privacy>div>.logs-table tr:hover {
 
 .buttons>a {
     margin: 0;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 0rem;
     font-size: 0.9rem;
     display: block;
 }

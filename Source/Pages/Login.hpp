@@ -69,6 +69,16 @@ void APISignup(const Link::Request& req, Link::Response& res) {
         user["Username"] = username;
         user["Password"] = encrypted;
         user["Created"].setRaw("time::now()");
+        user["DisplayName"] = username;
+        user["ShowStatus"].setRaw("true");
+        user["SaveHistory"].setRaw("true");
+        user["DataRetention"] = "7d";
+        user["Pin"] = "";
+        user["PinStatus"].setRaw("false");
+        user["PinTime"] = "30 minutes";
+        user["Bio"] = "";
+        user["LoginNotifs"].setRaw("true");
+        user["GeneralNotifs"].setRaw("true");
         user["ProfilePicture"].setRaw("NULL");
         std::string logs = "[{\"time\":\""+getCurrentTimeISO8601()+"\",\"action\":\"Account Created\", \"ip\":\""+req.getIP()+"\"}]";
         user["Logs"] = KyberHelper::encrypt(logs, keyPair.publicKey).ciphertext;

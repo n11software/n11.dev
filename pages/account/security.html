@@ -16,14 +16,14 @@
   </head>
   <body>
     <div class="settings">
-        <span class="title">Security - Not Finished</span>
+        <span class="title">Security</span>
         <div>
           <div class="security-container">
             <div class="security-section">
               <div class="section-header">
                 <h3>Pin Protection</h3>
                 <label class="toggle">
-                  <input type="checkbox" id="passcode-toggle">
+                  <input type="checkbox" id="passcode-toggle" {pinstatus}>
                   <span class="toggle-slider"></span>
                 </label>
               </div>
@@ -35,7 +35,8 @@
                          id="passcode-input" 
                          maxlength="4" 
                          pattern="\d{4}"
-                         placeholder="••••">
+                         placeholder="••••"
+                         value="{pin}">
                 </div>
                 
                 <div class="input-group">
@@ -60,7 +61,7 @@
               <div class="section-header">
                 <h3>Login Notifications</h3>
                 <label class="toggle">
-                  <input type="checkbox" id="notify-toggle">
+                  <input type="checkbox" id="notify-toggle" {notifs}>
                   <span class="toggle-slider"></span>
                 </label>
               </div>

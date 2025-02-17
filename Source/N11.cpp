@@ -71,6 +71,7 @@ int main() {
         server.Get("/account/password", AccountPassword);
         server.Get("/account/security", AccountSecurity);
         server.Post("/api/account/password", APIPassword);
+        server.Post("/api/account/settings/update", APIAccountSettings);
         server.Post("/api/account/verify", APIVerify);
         server.Get("/account/delete", AccountDelete);
         server.Post("/api/account/delete", APIDelete);

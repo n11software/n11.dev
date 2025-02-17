@@ -79,7 +79,35 @@ void AccountSettings(const Link::Request& req, Link::Response& res) {
         res.redirect("/login");
         return;
     }
-    res.sendFile("pages/account/settings.html");
+    // Get file pages/account/settings.html
+    std::ifstream file("pages/account/settings.html");
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    size_t pos = content.find("{displayname}");
+    if (pos != std::string::npos) {
+        content.replace(pos, 13, user.DisplayName);
+    }
+
+    // replace {bio} with the user's bio
+    pos = content.find("{bio}");
+    if (pos != std::string::npos) {
+        content.replace(pos, 5, user.Bio);
+    }
+
+    // replace {notifications} with the user's notification settings
+    pos = content.find("{notifications}");
+    if (pos != std::string::npos) {
+        content.replace(pos, 15, user.GeneralNotifs ? "checked" : "");
+    }
+    
+    // replace {status} with the user's status settings
+    pos = content.find("{status}");
+    if (pos != std::string::npos) {
+        content.replace(pos, 8, user.ShowStatus ? "checked" : "");
+    }
+
+    // send
+    res.setHeader("Content-Type", "text/html");
+    res.send(content);
 }
 
 void AccountSecurity(const Link::Request& req, Link::Response& res) {
@@ -88,7 +116,29 @@ void AccountSecurity(const Link::Request& req, Link::Response& res) {
         res.redirect("/login");
         return;
     }
-    res.sendFile("pages/account/security.html");
+    std::ifstream file("pages/account/security.html");
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    // replace {pin} with the user's pin settings
+    size_t pos = content.find("{pinstatus}");
+    if (pos != std::string::npos) {
+        content.replace(pos, 11, user.PinStatus ? "checked" : "");
+    }
+
+    // replace {pin} with the user's pin settings
+    pos = content.find("{pin}");
+    if (pos != std::string::npos) {
+        content.replace(pos, 5, user.Pin);
+    }
+
+    // replace {notifs} with the notifs
+    pos = content.find("{notifs}");
+    if (pos != std::string::npos) {
+        content.replace(pos, 8, user.LoginNotifs ? "checked" : "");
+    }
+
+    // send
+    res.setHeader("Content-Type", "text/html");
+    res.send(content);
 }
 
 void AccountPrivacy(const Link::Request& req, Link::Response& res) {
@@ -109,6 +159,18 @@ void AccountPrivacy(const Link::Request& req, Link::Response& res) {
     size_t pos = content.find("{data}");
     if (pos != std::string::npos) {
         content.replace(pos, 6, logs);
+    }
+
+    // replace {save} with the user's save history settings
+    pos = content.find("{save}");
+    if (pos != std::string::npos) {
+        content.replace(pos, 6, user.SaveHistory ? "checked" : "");
+    }
+
+    // replace {pin} with the user's pin settings
+    pos = content.find("{retention}");
+    if (pos != std::string::npos) {
+        content.replace(pos, 11, user.DataRetention);
     }
     res.setHeader("Content-Type", "text/html");
     res.send(content);
@@ -244,4 +306,48 @@ void APIPFP(const Link::Request& req, Link::Response& res) {
     }
     
     res.json("{\"success\":true}");
+}
+
+void APIAccountSettings(const Link::Request& req, Link::Response& res) {
+    try {
+        User user = GetUser(req.getCookie("username"), req.getCookie("key"));
+        std::string body = req.getBody();
+        if (body.empty()) {
+            res.status(400);
+            res.json("{\"error\":\"Empty request body\"}");
+            return;
+        }
+        // parse json
+        auto json = n11::JsonValue::parse(body);
+        std::string displayName = json["displayName"].stringify();
+        if (displayName.length() >= 2 && displayName.front() == '"' && displayName.back() == '"') {
+            displayName = displayName.substr(1, displayName.length() - 2);
+        }
+        std::string bio = json["bio"].stringify();
+        if (bio.length() >= 2 && bio.front() == '"' && bio.back() == '"') {
+            bio = bio.substr(1, bio.length() - 2);
+        }
+        bool notifs = json["emailNotify"].stringify() == "true";
+        bool status = json["onlineStatus"].stringify() == "true";
+
+        // if null set to previous
+        if (displayName == "null") displayName = user.DisplayName;
+        if (bio == "null") bio = user.Bio;
+        if (json["emailNotify"].stringify() == "null") notifs = user.GeneralNotifs;
+        if (json["onlineStatus"].stringify() == "null") status = user.ShowStatus;
+
+        // update user
+        user.DisplayName = displayName;
+        user.Bio = bio;
+        user.GeneralNotifs = notifs;
+        user.ShowStatus = status;
+        // send to DB with updated logs
+        DB("UPDATE Users SET DisplayName = \""+displayName+"\", Bio = \""+bio+"\", GeneralNotifs = "+(notifs?"true":"false")+", ShowStatus = "+(status?"true":"false")+" WHERE Username = \""+user.Username+"\"");
+        AddLog("Account Settings Updated", req.getIP(), user);
+        res.json("{\"success\":true}");
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        res.status(400);
+        res.json("{\"error\":\"Invalid JSON format\"}");
+    }
 }
