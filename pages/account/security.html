@@ -42,11 +42,11 @@
                 <div class="input-group">
                   <label>Require Pin Every</label>
                   <select id="timeout-setting">
-                    <option value="5">5 minutes</option>
-                    <option value="15">15 minutes</option>
-                    <option value="30">30 minutes</option>
-                    <option value="60">1 hour</option>
-                    <option value="1d">1 day</option>
+                    <option value="5" id="5">5 minutes</option>
+                    <option value="15" id="15">15 minutes</option>
+                    <option value="30" id="30">30 minutes</option>
+                    <option value="60" id="60">1 hour</option>
+                    <option value="1d" id="1d">1 day</option>
                   </select>
                 </div>
 
@@ -72,6 +72,94 @@
     </div>
     <script>
         let nav = {"Settings": "/account/settings", "Privacy": "/account/privacy", "Security": "/account/security"}
+
+        let time = "{time}"
+        document.getElementById(time).selected = true
+
+        // Track changed settings
+        let changedSettings = {};
+        
+        // Elements to track
+        const inputs = {
+            'pinEnabled': document.getElementById('passcode-toggle'),
+            'pinCode': document.getElementById('passcode-input'),
+            'pinTimeout': document.getElementById('timeout-setting'),
+            'loginNotifications': document.getElementById('notify-toggle')
+        };
+
+        // Add change listeners to all inputs
+        Object.entries(inputs).forEach(([key, element]) => {
+            if (!element) return;
+            
+            const handleChange = () => {
+                if (key === 'pinCode' && element.value.length !== 4) return;
+                changedSettings[key] = element.type === 'checkbox' ? element.checked : element.value;
+                sendUpdates();
+            };
+
+            if (key === 'pinCode') {
+                element.addEventListener('input', () => {
+                    element.value = element.value.replace(/[^0-9]/g, '').slice(0, 4);
+                });
+            }
+
+            element.addEventListener('change', handleChange);
+            if (key === 'pinCode') {
+                element.addEventListener('blur', handleChange);
+            }
+        });
+
+        // Show/hide pin settings based on toggle
+        document.getElementById('passcode-toggle').addEventListener('change', function() {
+            const settings = document.getElementById('passcode-settings');
+            if (this.checked) {
+                settings.style.display = 'block';
+            } else {
+                settings.style.display = 'none';
+                // Clear pin when disabled
+                document.getElementById('passcode-input').value = '';
+                if (changedSettings.pinCode) delete changedSettings.pinCode;
+                changedSettings.pinEnabled = false;
+                sendUpdates();
+            }
+        });
+
+        // Initialize pin settings visibility
+        document.getElementById('passcode-settings').style.display = 
+            document.getElementById('passcode-toggle').checked ? 'block' : 'none';
+
+        // Debounce function to prevent too many API calls
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Send updates to the API
+        const sendUpdates = debounce(() => {
+            if (Object.keys(changedSettings).length === 0) return;
+
+            fetch('/api/account/security/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(changedSettings)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    changedSettings = {};
+                }
+            })
+            .catch(error => console.error('Error updating security settings:', error));
+        }, 500);
     </script>
     <script type="text/javascript" src="/cache/footer.js"></script>
     <script type="text/javascript" src="/cache/navbar.js"></script>

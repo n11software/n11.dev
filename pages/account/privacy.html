@@ -40,10 +40,10 @@
                     <div class="input-group">
                         <label>Keep activity logs for</label>
                         <select id="retention-period">
-                            <option value="7" id="7d">7 days</option>
-                            <option value="30" id="30d">30 days</option>
-                            <option value="90" id="90d">90 days</option>
-                            <option value="365" id="365d">1 year</option>
+                            <option value="7d" id="7d">7 days</option>
+                            <option value="30d" id="30d">30 days</option>
+                            <option value="90d" id="90d">90 days</option>
+                            <option value="365d" id="365d">1 year</option>
                             <option value="forever" id="forever">Forever</option>
                         </select>
                     </div>
@@ -119,6 +119,80 @@
         })
         let retention = "{retention}"
         document.getElementById(retention).selected = true
+
+        // Track changed settings
+        let changedSettings = {};
+        
+        // Elements to track
+        const inputs = {
+            'saveActivity': document.getElementById('save-activity'),
+            'retentionPeriod': document.getElementById('retention-period')
+        };
+
+        // Add change listeners to all inputs
+        Object.entries(inputs).forEach(([key, element]) => {
+            if (!element) return;
+            
+            const handleChange = () => {
+                changedSettings[key] = element.type === 'checkbox' ? element.checked : element.value;
+                sendUpdates();
+            };
+
+            element.addEventListener('change', handleChange);
+        });
+
+        // Handle clear activity button
+        document.querySelector('.data-btn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear all activity history? This cannot be undone.')) {
+                fetch('/api/account/privacy/clear-activity', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                });
+            }
+        });
+
+        // Handle export logs button
+        document.querySelector('.export-btn').addEventListener('click', () => {
+            window.location.href = '/api/account/privacy/export-logs';
+        });
+
+        // Debounce function to prevent too many API calls
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Send updates to the API
+        const sendUpdates = debounce(() => {
+            if (Object.keys(changedSettings).length === 0) return;
+
+            fetch('/api/account/privacy/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(changedSettings)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    changedSettings = {};
+                }
+            })
+            .catch(error => console.error('Error updating privacy settings:', error));
+        }, 500);
     </script>
   </body>
 </html>

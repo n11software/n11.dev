@@ -130,6 +130,11 @@ void AccountSecurity(const Link::Request& req, Link::Response& res) {
         content.replace(pos, 5, user.Pin);
     }
 
+    pos = content.find("{time}");
+    if (pos != std::string::npos) {
+        content.replace(pos, 6, user.PinTime);
+    }
+
     // replace {notifs} with the notifs
     pos = content.find("{notifs}");
     if (pos != std::string::npos) {
@@ -344,6 +349,113 @@ void APIAccountSettings(const Link::Request& req, Link::Response& res) {
         // send to DB with updated logs
         DB("UPDATE Users SET DisplayName = \""+displayName+"\", Bio = \""+bio+"\", GeneralNotifs = "+(notifs?"true":"false")+", ShowStatus = "+(status?"true":"false")+" WHERE Username = \""+user.Username+"\"");
         AddLog("Account Settings Updated", req.getIP(), user);
+        res.json("{\"success\":true}");
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        res.status(400);
+        res.json("{\"error\":\"Invalid JSON format\"}");
+    }
+}
+
+
+void APIAccountPrivacy(const Link::Request& req, Link::Response& res) {
+    try {
+        User user = GetUser(req.getCookie("username"), req.getCookie("key"));
+        std::string body = req.getBody();
+        if (body.empty()) {
+            res.status(400);
+            res.json("{\"error\":\"Empty request body\"}");
+            return;
+        }
+        // parse json
+        auto json = n11::JsonValue::parse(body);
+        bool saveHistory = json["saveActivity"].stringify() == "true";
+        std::string retention = json["retentionPeriod"].stringify();
+        if (retention.length() >= 2 && retention.front() == '"' && retention.back() == '"') {
+            retention = retention.substr(1, retention.length() - 2);
+        }
+
+        // if null set to previous
+        if (json["saveActivity"].stringify() == "null") saveHistory = user.SaveHistory;
+        if (json["retentionPeriod"].stringify() == "null") retention = user.DataRetention;
+
+        std::cout << "SaveHistory: " << saveHistory << std::endl;
+        std::cout << "Retention: " << retention << std::endl;
+
+        // update user
+        user.SaveHistory = saveHistory;
+        user.DataRetention = retention;
+
+        // Fix: Use proper string concatenation for the SQL query
+        std::string query = "UPDATE Users SET SaveHistory = ";
+        query += (saveHistory ? "true" : "false");
+        query += ", DataRetention = \"";
+        query += retention;
+        query += "\" WHERE Username = \"";
+        query += user.Username;
+        query += "\"";
+
+        // send to DB with updated logs
+        DB(query);
+        AddLog("Privacy Settings Updated", req.getIP(), user);
+        res.json("{\"success\":true}");
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        res.status(400);
+        res.json("{\"error\":\"Invalid JSON format\"}");
+    }
+}
+
+void APIAccountSecurity(const Link::Request& req, Link::Response& res) {
+    try {
+        User user = GetUser(req.getCookie("username"), req.getCookie("key"));
+        std::string body = req.getBody();
+        if (body.empty()) {
+            res.status(400);
+            res.json("{\"error\":\"Empty request body\"}");
+            return;
+        }
+        // parse json {pinEnabled: true, pinTimeout: "5", loginNotifications: false, pinCode: "3243"}
+        auto json = n11::JsonValue::parse(body);
+        bool pinStatus = json["pinEnabled"].stringify() == "true";
+        std::string pin = json["pinCode"].stringify();
+        if (pin.length() >= 2 && pin.front() == '"' && pin.back() == '"') {
+            pin = pin.substr(1, pin.length() - 2);
+        }
+        bool loginNotifs = json["loginNotifications"].stringify() == "true";
+        std::string pinTime = json["pinTimeout"].stringify();
+        if (pinTime.length() >= 2 && pinTime.front() == '"' && pinTime.back() == '"') {
+            pinTime = pinTime.substr(1, pinTime.length() - 2);
+        }
+
+        // if null set to previous
+        if (json["pinEnabled"].stringify() == "null") pinStatus = user.PinStatus;
+        if (json["pinCode"].stringify() == "null") pin = user.Pin;
+        if (json["loginNotifications"].stringify() == "null") loginNotifs = user.LoginNotifs;
+        if (json["pinTimeout"].stringify() == "null") pinTime = user.PinTime;
+
+        // update user
+        user.PinStatus = pinStatus;
+        user.Pin = pin;
+        user.LoginNotifs = loginNotifs;
+        user.PinTime = pinTime;
+
+        // build DB query
+        std::string query = "UPDATE Users SET PinStatus = ";
+        query += (pinStatus ? "true" : "false");
+        query += ", Pin = \"";
+        query += pin;
+        query += "\", LoginNotifs = ";
+        query += (loginNotifs ? "true" : "false");
+        query += ", PinTime = \"";
+        query += pinTime;
+        query += "\" WHERE Username = \"";
+        query += user.Username;
+        query += "\"";
+
+        // send to DB with updated logs
+        DB(query);
+        AddLog("Security Settings Updated", req.getIP(), user);
         res.json("{\"success\":true}");
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;

@@ -230,7 +230,7 @@ body>.privacy>div>.logs-table tr:hover {
 .input-group input,
 .input-group select {
     width: 100%;
-    padding: 0.5rem;
+    padding: 0.5rem 0;
     background: black;
     border: 1px solid #333;
     border-radius: 4px;

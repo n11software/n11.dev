@@ -75,7 +75,8 @@ void APISignup(const Link::Request& req, Link::Response& res) {
         user["DataRetention"] = "7d";
         user["Pin"] = "";
         user["PinStatus"].setRaw("false");
-        user["PinTime"] = "30 minutes";
+        user["PinTime"] = "30";
+        user["PinLastTimeUsed"] = "Never";
         user["Bio"] = "";
         user["LoginNotifs"].setRaw("true");
         user["GeneralNotifs"].setRaw("true");
