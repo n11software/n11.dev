@@ -12,6 +12,16 @@ body>.settings {
     flex-direction: column;
 }
 
+body>.profile {
+    background-color: black;
+    display: flex;
+    min-height: 83vh;
+    color: white;
+    font-family: monospace;
+    padding: 2rem 8rem;
+    flex-direction: column;
+}
+
 body>.settings>span.title {
     font-size: 1.25rem;
     font-weight: bold;

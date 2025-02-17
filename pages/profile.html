@@ -14,10 +14,18 @@
     <link rel="manifest" href="/site.webmanifest" />
     <style>
       .profile-container {
-        width: 100%;
-        max-width: 800px;
-        margin: 0 auto;
+        margin: 0 8rem;
         padding: 2rem;
+      }
+
+      @media (max-width: 1000px) {
+        .profile-container {
+            margin: 0 2rem;
+        }
+      }
+
+      body>.profile {
+        padding: 2rem 0;
       }
       
       .profile-header {
@@ -128,7 +136,7 @@
     </style>
   </head>
   <body>
-    <div class="settings">
+    <div class="profile">
       <div class="profile-container">
         <div class="security-section" id="profile-content">
           <!-- Content will be inserted here by JavaScript -->
@@ -183,9 +191,6 @@
             </div>
           `;
         });
-    </script>
-    <script>
-      let nav = {"Settings": "/account/settings", "Privacy": "/account/privacy", "Security": "/account/security"}
     </script>
     <script type="text/javascript" src="/cache/footer.js"></script>
     <script type="text/javascript" src="/cache/navbar.js"></script>
