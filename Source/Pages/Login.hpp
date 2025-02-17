@@ -104,6 +104,8 @@ void APIProfile(const Link::Request& req, Link::Response& res) {
     json["username"] = user.Username;
     json["created"] = user.CreatedAt;
     json["pfp"] = user.PFP;
+    json["bio"] = user.Bio;
+    json["displayName"] = user.DisplayName;
     res.json(json.stringify());
 }
 

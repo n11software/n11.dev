@@ -66,6 +66,9 @@ int main() {
         
         server.Get("/accounts", Accounts);
         server.Get("/account", Account);
+        server.Get("/profile/[user]", [](const Link::Request& req, Link::Response& res) {
+            res.sendFile("pages/profile.html");
+        });
         server.Get("/account/settings", AccountSettings);
         server.Get("/account/privacy", AccountPrivacy);
         server.Get("/account/password", AccountPassword);

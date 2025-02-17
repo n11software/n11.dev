@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="theme-color" content="#000000">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N11 - Profile</title>
+    <link rel="stylesheet" href="/account.css"/>
+    <link rel="icon" type="image/png" href="/favicon-48x48.png" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="N11" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <style>
+      .profile-container {
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      
+      .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 3rem;
+        margin-bottom: 2rem;
+      }
+
+      .profile-pfp {
+        width: 140px;
+        height: 140px;
+        border-radius: 70px;
+        border: 2px solid #222;
+        transition: transform 0.3s ease;
+      }
+
+      .profile-pfp:hover {
+        transform: scale(1.05);
+      }
+
+      .profile-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .profile-name {
+        font-size: 2rem;
+        font-weight: bold;
+        letter-spacing: -0.5px;
+      }
+
+      .profile-email {
+        color: #888;
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .profile-bio {
+        color: #ddd;
+        line-height: 1.6;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #222;
+      }
+
+      .profile-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+
+      .profile-status::before {
+        content: "";
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+
+      .status-online {
+        background: rgba(46, 238, 46, 0.1);
+        color: #2ee;
+      }
+
+      .status-online::before {
+        background: #2ee;
+      }
+
+      .status-offline {
+        background: rgba(136, 136, 136, 0.1);
+        color: #888;
+      }
+
+      .status-offline::before {
+        background: #888;
+      }
+
+      .error-message {
+        text-align: center;
+        color: #df4141;
+        padding: 3rem 2rem;
+        font-size: 1.1rem;
+      }
+
+      @media (max-width: 600px) {
+        .profile-header {
+          flex-direction: column;
+          text-align: center;
+          gap: 1.5rem;
+        }
+
+        .profile-info {
+          align-items: center;
+        }
+
+        .profile-bio {
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="settings">
+      <div class="profile-container">
+        <div class="security-section" id="profile-content">
+          <!-- Content will be inserted here by JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const username = window.location.pathname.split('/').pop();
+      
+      fetch(`/api/user/profile/${username}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) {
+            document.getElementById('profile-content').innerHTML = `
+              <div class="error-message">
+                <h3>User not found</h3>
+                <p>The profile you're looking for doesn't exist</p>
+              </div>
+            `;
+            return;
+          }
+
+          const statusClass = data.online ? 'status-online' : 'status-offline';
+          const statusText = data.online ? 'Online' : 'Offline';
+          
+          let pfp = '/Default.jpg';
+          if (data.pfp && !data.pfp.error) {
+            pfp = 'data:image/png;base64,'+data.pfp.pfp;
+          }
+
+          document.getElementById('profile-content').innerHTML = `
+            <div class="profile-header">
+              <img src="${pfp}" alt="Profile Picture" class="profile-pfp">
+              <div class="profile-info">
+                <div class="profile-name">${data.displayName || username}</div>
+                <div class="profile-email">${username}@n11.dev</div>
+                ${data.showStatus ? `<span class="profile-status ${statusClass}">${statusText}</span>` : ''}
+              </div>
+            </div>
+            ${data.bio ? `<div class="profile-bio">${data.bio}</div>` : ''}
+          `;
+
+          document.title = `${data.displayName || username} - N11`;
+        })
+        .catch(error => {
+          console.error('Error fetching profile:', error);
+          document.getElementById('profile-content').innerHTML = `
+            <div class="error-message">
+              <h3>Failed to load profile</h3>
+              <p>Please try again later</p>
+            </div>
+          `;
+        });
+    </script>
+    <script>
+      let nav = {"Settings": "/account/settings", "Privacy": "/account/privacy", "Security": "/account/security"}
+    </script>
+    <script type="text/javascript" src="/cache/footer.js"></script>
+    <script type="text/javascript" src="/cache/navbar.js"></script>
+  </body>
+</html>

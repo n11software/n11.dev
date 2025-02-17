@@ -205,6 +205,14 @@ User GetUser(std::string username) {
         user.Username = username;
         user.PFP = pfp;
         user.CreatedAt = created;
+        user.Bio = userObj["Bio"].stringify();
+        if (user.Bio.length() >= 2 && user.Bio.front() == '"' && user.Bio.back() == '"') {
+            user.Bio = user.Bio.substr(1, user.Bio.length() - 2);
+        }
+        user.DisplayName = userObj["DisplayName"].stringify();
+        if (user.DisplayName.length() >= 2 && user.DisplayName.front() == '"' && user.DisplayName.back() == '"') {
+            user.DisplayName = user.DisplayName.substr(1, user.DisplayName.length() - 2);
+        }
         return user;
     } catch (...) {
         return user;
