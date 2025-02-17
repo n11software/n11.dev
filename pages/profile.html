@@ -250,8 +250,7 @@
           const statusText = data.online ? 'Online' : 'Offline';
           
           let pfp = '/Default.jpg';
-          console.log(data.pfp);
-          if (data.pfp && !data.pfp.error) {
+          if (data.pfp.pfp != null) {
             pfp = 'data:image/png;base64,'+data.pfp.pfp;
           }
 
