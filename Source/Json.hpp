@@ -4,6 +4,7 @@
 #include <map>
 #include <variant>
 #include <stdexcept>
+#include <string_view>
 
 namespace n11 {
 
@@ -166,13 +167,13 @@ public:
 private:
     ValueType value_;
     
-    static JsonValue parseValue(const std::string& json, size_t& pos);
-    static std::string parseString(const std::string& json, size_t& pos);
-    static double parseNumber(const std::string& json, size_t& pos);
-    static Array parseArray(const std::string& json, size_t& pos);
-    static Object parseObject(const std::string& json, size_t& pos);
+    static JsonValue parseValue(std::string_view json, size_t& pos);
+    static std::string parseString(std::string_view json, size_t& pos);
+    static double parseNumber(std::string_view json, size_t& pos);
+    static Array parseArray(std::string_view json, size_t& pos);
+    static Object parseObject(std::string_view json, size_t& pos);
     
-    static void skipWhitespace(const std::string& json, size_t& pos);
+    static void skipWhitespace(std::string_view json, size_t& pos);
     static bool isWhitespace(char c);
 };
 

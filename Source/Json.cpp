@@ -1,16 +1,18 @@
 #include "Json.hpp"
 #include <sstream>
 #include <iomanip>
+#include <string_view>
 
 namespace n11 {
 
 JsonValue JsonValue::parse(const std::string& json) {
+    std::string_view view(json);
     size_t pos = 0;
-    skipWhitespace(json, pos);
-    return parseValue(json, pos);
+    skipWhitespace(view, pos);
+    return parseValue(view, pos);
 }
 
-JsonValue JsonValue::parseValue(const std::string& json, size_t& pos) {
+JsonValue JsonValue::parseValue(std::string_view json, size_t& pos) {
     skipWhitespace(json, pos);
     
     if (pos >= json.length()) {
@@ -19,19 +21,19 @@ JsonValue JsonValue::parseValue(const std::string& json, size_t& pos) {
 
     switch (json[pos]) {
         case 'n':
-            if (json.substr(pos, 4) == "null") {
+            if (pos + 4 <= json.length() && json.substr(pos, 4) == "null") {
                 pos += 4;
                 return JsonValue(nullptr);
             }
             break;
         case 't':
-            if (json.substr(pos, 4) == "true") {
+            if (pos + 4 <= json.length() && json.substr(pos, 4) == "true") {
                 pos += 4;
                 return JsonValue(true);
             }
             break;
         case 'f':
-            if (json.substr(pos, 5) == "false") {
+            if (pos + 5 <= json.length() && json.substr(pos, 5) == "false") {
                 pos += 5;
                 return JsonValue(false);
             }
@@ -134,21 +136,31 @@ std::string JsonValue::stringify() const {
 // Helper parsing functions implementation would go here
 // ...
 
-std::string JsonValue::parseString(const std::string& json, size_t& pos) {
+std::string JsonValue::parseString(std::string_view json, size_t& pos) {
     char quoteChar = json[pos];
     if (quoteChar != '"' && quoteChar != '\'') {
         throw std::runtime_error("Expected quote at start of string");
     }
     
     std::string result;
+    result.reserve(32); // Reserve some initial capacity
     pos++; // Skip opening quote
     
+    size_t start = pos;
     while (pos < json.length()) {
-        char c = json[pos++];
+        char c = json[pos];
         if (c == quoteChar) {
+            if (pos > start) {
+                result.append(json.data() + start, pos - start);
+            }
+            pos++;
             return result;
         }
-        if (c == '\\' && pos < json.length()) {
+        if (c == '\\' && pos + 1 < json.length()) {
+            if (pos > start) {
+                result.append(json.data() + start, pos - start);
+            }
+            pos++;
             char next = json[pos++];
             switch (next) {
                 case '"':
@@ -162,15 +174,16 @@ std::string JsonValue::parseString(const std::string& json, size_t& pos) {
                 case 't': result += '\t'; break;
                 default: result += next;
             }
+            start = pos;
         } else {
-            result += c;
+            pos++;
         }
     }
     
     throw std::runtime_error("Unterminated string");
 }
 
-double JsonValue::parseNumber(const std::string& json, size_t& pos) {
+double JsonValue::parseNumber(std::string_view json, size_t& pos) {
     size_t start = pos;
     if (json[pos] == '-') pos++;
     
@@ -180,11 +193,10 @@ double JsonValue::parseNumber(const std::string& json, size_t& pos) {
         while (pos < json.length() && std::isdigit(json[pos])) pos++;
     }
     
-    std::string numStr = json.substr(start, pos - start);
-    return std::stod(numStr);
+    return std::stod(std::string(json.substr(start, pos - start)));
 }
 
-void JsonValue::skipWhitespace(const std::string& json, size_t& pos) {
+void JsonValue::skipWhitespace(std::string_view json, size_t& pos) {
     while (pos < json.length() && isWhitespace(json[pos])) {
         pos++;
     }
@@ -194,25 +206,20 @@ bool JsonValue::isWhitespace(char c) {
     return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
-JsonValue::Array JsonValue::parseArray(const std::string& json, size_t& pos) {
-    if (json[pos] != '[') {
-        throw std::runtime_error("Expected '[' at start of array");
-    }
+JsonValue::Array JsonValue::parseArray(std::string_view json, size_t& pos) {
     pos++; // Skip '['
     
     Array array;
+    array.reserve(16); // Reserve space for 16 elements initially
     skipWhitespace(json, pos);
     
     while (pos < json.length()) {
         if (json[pos] == ']') {
-            pos++; // Skip ']'
+            pos++;
             return array;
         }
 
-        // Parse array element
-        JsonValue element = parseValue(json, pos);
-        array.push_back(element);
-        
+        array.push_back(parseValue(json, pos));
         skipWhitespace(json, pos);
         
         if (pos >= json.length()) {
@@ -220,7 +227,7 @@ JsonValue::Array JsonValue::parseArray(const std::string& json, size_t& pos) {
         }
         
         if (json[pos] == ']') {
-            pos++; // Skip ']'
+            pos++;
             return array;
         }
         
@@ -228,24 +235,21 @@ JsonValue::Array JsonValue::parseArray(const std::string& json, size_t& pos) {
             throw std::runtime_error("Expected ',' or ']' in array");
         }
         
-        pos++; // Skip ','
+        pos++;
         skipWhitespace(json, pos);
     }
     
     throw std::runtime_error("Unterminated array");
 }
 
-JsonValue::Object JsonValue::parseObject(const std::string& json, size_t& pos) {
-    if (json[pos] != '{') {
-        throw std::runtime_error("Expected '{' at start of object");
-    }
+JsonValue::Object JsonValue::parseObject(std::string_view json, size_t& pos) {
     pos++; // Skip '{'
     
     Object object;
     skipWhitespace(json, pos);
     
     if (pos < json.length() && json[pos] == '}') {
-        pos++; // Skip '}'
+        pos++;
         return object;
     }
     
@@ -258,9 +262,9 @@ JsonValue::Object JsonValue::parseObject(const std::string& json, size_t& pos) {
         if (pos >= json.length() || json[pos] != ':') {
             throw std::runtime_error("Expected ':' after object key");
         }
-        pos++; // Skip ':'
+        pos++;
         
-        object[key] = parseValue(json, pos);
+        object.emplace(std::move(key), parseValue(json, pos));
         skipWhitespace(json, pos);
         
         if (pos >= json.length()) {
@@ -268,7 +272,7 @@ JsonValue::Object JsonValue::parseObject(const std::string& json, size_t& pos) {
         }
         
         if (json[pos] == '}') {
-            pos++; // Skip '}'
+            pos++;
             return object;
         }
         
@@ -276,7 +280,7 @@ JsonValue::Object JsonValue::parseObject(const std::string& json, size_t& pos) {
             throw std::runtime_error("Expected ',' or '}' in object");
         }
         
-        pos++; // Skip ','
+        pos++;
     }
     
     throw std::runtime_error("Unterminated object");

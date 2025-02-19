@@ -63,6 +63,12 @@ int main() {
         server.Get("/", [](const Link::Request& req, Link::Response& res) {
             res.sendFile("pages/index.html");
         });
+
+        server.Get("/gztest", [](const Link::Request& req, Link::Response& res) {
+            std::string body = "Hello, World! This is a test of gzip compression.";
+            
+            res.send(body);
+        });
         
         server.Get("/accounts", Accounts);
         server.Get("/account", Account);

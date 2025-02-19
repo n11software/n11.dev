@@ -293,7 +293,7 @@ else
 fi
 
 # Create DB and start surreal
-surreal start --user root --pass root rocksdb:n11.db > /dev/null 2>&1 & 
+surreal start --user root --pass root surrealkv:n11.db > /dev/null 2>&1 & 
 # Connect to it and run "DEFINE NAMESPACE N11;"
 sleep 2;
 echo "DEFINE NAMESPACE N11;USE NS N11;DEFINE DATABASE N11;" | surreal sql --user root --pass root > /dev/null 2>&1
