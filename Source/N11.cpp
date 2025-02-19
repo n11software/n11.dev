@@ -188,7 +188,8 @@ int main() {
                 return;
             }
             res.status(code);
-            res.sendFile("pages/404.html");
+            // res.sendFile("pages/404.html");
+            res.send(req.getURL());
         });
 
         // Default error handler for all other errors
