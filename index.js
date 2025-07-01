@@ -9,6 +9,7 @@ const { deriveKey, encryptJSON } = require('./crypto-utils');
 const secureUser = require('./secureUser');
 require('dotenv').config();
 const fs = require('fs');
+const compression = require('compression');
 
 const app = express();
 const PORT = 3001;
@@ -31,6 +32,7 @@ app.use(cors({
 
 app.use(express.json({ limit: '1gb' }));  // or whatever size you need
 
+app.use(compression());
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
