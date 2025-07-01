@@ -19,7 +19,7 @@
       <div>
         <span class="title">Login</span>
         <div class="box">
-          <input class="email" placeholder="Username" type="text" autofucus="true" id="email">
+          <input class="email" placeholder="Username" type="text" autofocus="true" id="email" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false">
           <span>@n11.dev</span>
         </div>
         <div class="buttons">
@@ -84,7 +84,7 @@
               console.log(e)
               if (e.error != "User doesn't exist") {
                 // change .box > input to password
-                document.querySelector('.box').innerHTML = `<input class="password" placeholder="Password" type="password" autofucus id="password"><span></span>`
+                document.querySelector('.box').innerHTML = `<input class="password" placeholder="Password" type="password" autofocus id="password" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false"><span></span>`
                 document.querySelector('.box').style.border = '0'
 
                 document.getElementById('password').focus()
@@ -126,7 +126,7 @@
                 back.onclick = () => {
                   document.querySelector('.buttons').innerHTML = '<a class="next" id="next">Next</a>'
                   document.querySelector('.next').onclick = next
-                  document.querySelector('.box').innerHTML = `<input class="email" placeholder="Username" type="text" autofucus id="email"><span>@n11.dev</span>`
+                  document.querySelector('.box').innerHTML = `<input class="email" placeholder="Username" type="text" autofocus id="email" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false"><span>@n11.dev</span>`
                   document.getElementById('email').focus()
                   document.querySelector('.box').style.border = '0'
                   document.querySelector('.box').style.padding = '.75rem 1rem'

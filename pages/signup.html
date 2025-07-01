@@ -19,7 +19,7 @@
       <div>
         <span class="title">Sign Up</span>
         <div class="box">
-          <input class="email" placeholder="Username" type="text">
+          <input class="email" placeholder="Username" autofocus="true" type="text" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false">
           <span>@n11.dev</span>
         </div>
         <div class="buttons">
@@ -91,7 +91,7 @@
                 else document.querySelector('.next').style.padding = "0.5rem 1rem"
               } else {
                 // change .box > input to password
-                document.querySelector('.box').innerHTML = `<input class="password" placeholder="Password" type="password"><span></span>`
+                document.querySelector('.box').innerHTML = `<input class="password" placeholder="Password" type="password" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false"><span></span>`
                 document.querySelector('.box').style.border = '0'
                 document.querySelector('.password').addEventListener('keydown', (e) => {
                   if (e.key == 'Enter') {
@@ -128,7 +128,7 @@
                 back.onclick = () => {
                   document.querySelector('.buttons').innerHTML = '<a class="next" id="next">Next</a>'
                   document.querySelector('.next').onclick = next
-                  document.querySelector('.box').innerHTML = `<input class="email" placeholder="Username" type="text"><span>@n11.dev</span>`
+                  document.querySelector('.box').innerHTML = `<input class="email" placeholder="Username" type="text" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false"><span>@n11.dev</span>`
                   document.querySelector('.box').style.border = '0'
                   document.querySelector('.box').style.padding = '.75rem 1rem'
                   document.querySelector('.box>input').value = value
