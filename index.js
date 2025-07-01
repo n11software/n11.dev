@@ -205,7 +205,7 @@ app.post('/api/signup', async (req, res) => {
     pinLastTimeUsed: 'Never',
     saveHistory: true,
     dataRetention: '7d',
-    logs: [{ time: new Date().toISOString(), action: 'Account Created', ip: req.ip }]
+    logs: [{ time: new Date().toISOString(), action: 'Account Created', ip: req.headers['x-forwarded-for'] || req.ip }]
   };
   const encrypted_blob = encryptJSON(key, encrypted);
   const plaintext_blob = JSON.stringify(plaintext);
