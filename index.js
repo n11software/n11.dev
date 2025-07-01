@@ -51,12 +51,12 @@ app.post('/api/user/updatepfp', express.raw({ type: '*/*', limit: '1gb' }), asyn
     let userData = await getData(token);
     
     const newPlaintext = {
-      ...data.plaintext,
+      ...userData.plaintext,
       pfp: { pfp: base64Image },
     };
 
     const newEncrypted = {
-      ...data.encrypted,
+      ...userData.encrypted,
     };
 
     // Merge and save
