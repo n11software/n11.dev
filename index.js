@@ -25,7 +25,7 @@ const { getDB } = require('./db');
 const upload = multer({ limits: { fileSize: 1024 * 1024 * 1024 } }); // 5MB max
 
 app.use(cors({
-  origin: 'http://localhost:3001', // Your frontend
+  origin: process.env.CORS_ORIGIN, // Your frontend
   credentials: true                // ✅ This enables cookies!
 }));
 
