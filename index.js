@@ -25,10 +25,24 @@ const { getDB } = require('./db');
 
 const upload = multer({ limits: { fileSize: 1024 * 1024 * 1024 } }); // 5MB max
 
-app.use(cors({
-  origin: process.env.CORS_ORIGIN, // Your frontend
-  credentials: true                // ✅ This enables cookies!
-}));
+const whitelist = [
+  'https://enterprise.n11.dev',
+  'https://c10d.n11.dev',
+  process.env.CORS_ORIGIN, // This should be set in your environment variables
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || whitelist.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true // allow cookies
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json({ limit: '1gb' }));  // or whatever size you need
 
