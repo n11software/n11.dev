@@ -155,63 +155,57 @@
           } else {
             // convert password to sha512 hash
             password = document.querySelector('.password').value
-            hashPassword(password).then(e => {
-              password = e
-              // send {"username": value, "password": password} to /api/signup
-              fetch('/api/login', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  username: value,
-                  password: password
-                })
-              }).then(response => response.json())
-              .then(async e => {
-                console.log(e)
-                document.querySelector('.next').innerHTML = "Next"
+            
+            fetch('/api/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include', // ✅ without this, cookie is dropped
+              body: JSON.stringify({ username: value, password })
+            }).then(response => response.json())
+            .then(async e => {
+              console.log(e)
+              document.querySelector('.next').innerHTML = "Next"
 
-                if (window.innerWidth < 1000) document.querySelector('div.center > div > .buttons > .next').style.padding = "0.75rem 1rem"
-                else document.querySelector('.next').style.padding = "0.5rem 1rem"
-                if (e.success != true) {
-                  document.querySelector('.box').style.border = '1px solid #ff3838'
-                  document.querySelector('.box').style.padding = 'calc(.75rem - 1px) calc(1rem - 1px)'
+              if (window.innerWidth < 1000) document.querySelector('div.center > div > .buttons > .next').style.padding = "0.75rem 1rem"
+              else document.querySelector('.next').style.padding = "0.5rem 1rem"
+              if (e.success != true) {
+                document.querySelector('.box').style.border = '1px solid #ff3838'
+                document.querySelector('.box').style.padding = 'calc(.75rem - 1px) calc(1rem - 1px)'
+              } else {
+                document.cookie = "username=" + user
+                let token = e.token
+                document.cookie = `key=${token}`
+                console.log(token)
+                // add to offload cookie
+                if (document.cookie.split(';').find(cookie => cookie.includes('offload')) == undefined) {
+                  document.cookie = `offload=${JSON.stringify({[user]: token})}`
                 } else {
-                  document.cookie = "key=" + password + "; expires=" + date.toUTCString()
-                  document.cookie = "username=" + user + "; expires=" + date.toUTCString()
-                  // add to offload cookie
-                  if (document.cookie.split(';').find(cookie => cookie.includes('offload')) == undefined) {
-                    document.cookie = `offload=${JSON.stringify({[user]: password})}; expires=${date.toUTCString()}`
-                  } else {
-                    let offloadCookie = document.cookie.split(';').find(cookie => cookie.includes('offload'))
-                    let offloadJSON = JSON.parse(offloadCookie.split('=')[1])
-                    offloadJSON[user] = password
-                    document.cookie = `offload=${JSON.stringify(offloadJSON)}; expires=${date.toUTCString()}`
-                  }
-                  // reload cache
-                  const cacheName = 'n11-navbar';
-                  const urlToCache = '/cache/navbar.js';
-                  const cacheDuration = 3600 * 1000; // 3600 seconds in milliseconds
-
-                  async function cachePage() {
-                    const cache = await caches.open(cacheName);
-                    const response = await fetch(urlToCache, { cache: 'reload' });
-                    await cache.put(urlToCache, response);
-                    console.log(`Cached ${urlToCache} at ${new Date().toLocaleTimeString()}`);
-                  }
-
-                  async function refreshCache() {
-                    await cachePage();
-                    setTimeout(refreshCache, cacheDuration);
-                  }
-
-                  // Start the cache refresh process
-                  await refreshCache().then(() => {
-                    window.location.href = "/"
-                  })
+                  let offloadCookie = document.cookie.split(';').find(cookie => cookie.includes('offload'))
+                  let offloadJSON = JSON.parse(offloadCookie.split('=')[1])
+                  offloadJSON[user] = token
+                  document.cookie = `offload=${JSON.stringify(offloadJSON)}`
                 }
-              })
+                const cacheName = 'n11-navbar';
+                const urlToCache = '/cache/navbar.js';
+                const cacheDuration = 3600 * 1000; // 3600 seconds in milliseconds
+
+                async function cachePage() {
+                  const cache = await caches.open(cacheName);
+                  const response = await fetch(urlToCache, { cache: 'reload' });
+                  await cache.put(urlToCache, response);
+                  console.log(`Cached ${urlToCache} at ${new Date().toLocaleTimeString()}`);
+                }
+
+                async function refreshCache() {
+                  await cachePage();
+                  setTimeout(refreshCache, cacheDuration);
+                }
+
+                // Start the cache refresh process
+                await refreshCache().then(() => {
+                  window.location.href = "/"
+                })
+              }
             })
           }
         }

@@ -42,7 +42,7 @@ body>.settings>div>.pfp {
     margin-bottom: 1rem;
 }
 
-body>.settings>div>.username {
+body>.settings>div>.username, body>.settings>div>.displayname {
     font-size: 1.25rem;
     font-weight: bold;
 }
@@ -239,8 +239,8 @@ body>.privacy>div>.logs-table tr:hover {
 
 .input-group input,
 .input-group select {
-    width: 100%;
-    padding: 0.5rem 0;
+    width: -webkit-fill-available;
+    padding: 0.5rem 1rem;
     background: black;
     border: 1px solid #333;
     border-radius: 4px;
@@ -552,7 +552,7 @@ body>.privacy>div>.logs-table tr:hover {
     margin-bottom: 1rem;
 }
 
-.settings-container .security-section .username {
+.settings-container .security-section .displayname {
     font-size: 1.25rem;
     font-weight: bold;
     margin: 0.25rem 0;

@@ -236,6 +236,7 @@
       fetch(`/api/user/profile/${username}`)
         .then(response => response.json())
         .then(data => {
+          data = typeof data === 'String' ? JSON.parse(data[username]) : data[username];
           if (data.error) {
             document.getElementById('profile-content').innerHTML = `
               <div class="error-message">
@@ -249,24 +250,25 @@
           const statusClass = data.online ? 'status-online' : 'status-offline';
           const statusText = data.online ? 'Online' : 'Offline';
           
-          let pfp = '/Default.jpg';
-          if (data.pfp.pfp != null) {
-            pfp = 'data:image/png;base64,'+data.pfp.pfp;
-          }
+          let pfp = '/cache/Default.jpg';
+          console.log(data);
+          // if (JSON.parse(data).pfp != null) {
+          //   pfp = 'data:image/png;base64,'+JSON.parse(data.pfp).pfp;
+          // }
 
           document.getElementById('profile-content').innerHTML = `
             <div class="profile-header">
               <img src="${pfp}" alt="Profile Picture" class="profile-pfp">
               <div class="profile-info">
-                <div class="profile-name">${data.displayName || username}</div>
-                <div class="profile-email">${username}@n11.dev</div>
+                <div class="profile-name">${username}</div>
+                <div class="profile-email">${data.email}</div>
                 ${data.showStatus ? `<span class="profile-status ${statusClass}">${statusText}</span>` : ''}
               </div>
             </div>
             ${data.bio ? `<div class="profile-bio">${data.bio}</div>` : ''}
           `;
 
-          document.title = `${data.displayName || username} - N11`;
+          document.title = `${username} - N11`;
         })
         .catch(error => {
           console.error('Error fetching profile:', error);

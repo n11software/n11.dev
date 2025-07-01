@@ -161,21 +161,8 @@
             window.location.href = '/api/account/privacy/export-logs';
         });
 
-        // Debounce function to prevent too many API calls
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
         // Send updates to the API
-        const sendUpdates = debounce(() => {
+        const sendUpdates = () => {
             if (Object.keys(changedSettings).length === 0) return;
 
             fetch('/api/account/privacy/update', {
@@ -192,7 +179,7 @@
                 }
             })
             .catch(error => console.error('Error updating privacy settings:', error));
-        }, 500);
+        }
     </script>
   </body>
 </html>

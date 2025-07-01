@@ -103,8 +103,8 @@
           let password = offloadJSON[username];
           let date = new Date();
           date.setTime(date.getTime() + (180 * 24 * 60 * 60 * 1000));
-          document.cookie = `key=${password}; expires=${date.toUTCString()}`;
-          document.cookie = `username=${username}; expires=${date.toUTCString()}`;
+          document.cookie = `key=${password}`;
+          document.cookie = `username=${username}`;
           reloadCache('/cache/navbar.js', () => {
             let url = new URL(window.location.href);
             let redir = url.searchParams.get('redir');

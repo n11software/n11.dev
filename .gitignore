@@ -1,8 +1,8 @@
-Build/
-*.crt
-*.pem
-*.key
-N11
-n11.db/
+node_modules/
+.env
+.DS_Store
 .vscode/
-deploy_new.sh
+.idea/
+*.log
+*.db
+package-lock.json

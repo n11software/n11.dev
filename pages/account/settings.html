@@ -20,8 +20,8 @@
         <div>
           <div class="settings-container">
             <div class="security-section">
-              <img src="/Default.jpg" alt="PFP" class="pfp mypfp" uploadable/>
-              <span class="username" myusername></span>
+              <img src="/cache/Default.jpg" alt="PFP" class="pfp mypfp" uploadable/>
+              <span class="displayname" mydisplayname></span>
               <span class="email" myemail></span>
               
               <div class="input-group">
@@ -70,10 +70,10 @@
         
         // Elements to track
         const inputs = {
-            'displayName': document.getElementById('display-name'),
-            'bio': document.getElementById('bio'),
-            'emailNotify': document.getElementById('email-notify'),
-            'onlineStatus': document.getElementById('online-status')
+          'displayName': document.getElementById('display-name'),
+          'bio': document.getElementById('bio'),
+          'emailNotify': document.getElementById('email-notify'),
+          'onlineStatus': document.getElementById('online-status')
         };
 
         // Add change listeners to all inputs
@@ -89,21 +89,8 @@
             element.addEventListener('input', handleChange);
         });
 
-        // Debounce function to prevent too many API calls
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
         // Send updates to the API
-        const sendUpdates = debounce(() => {
+        const sendUpdates = () => {
             if (Object.keys(changedSettings).length === 0) return;
 
             fetch('/api/account/settings/update', {
@@ -119,9 +106,26 @@
                     // Clear the changes after successful update
                     changedSettings = {};
                 }
+                const cacheName = 'n11-navbar';
+                const urlToCache = '/cache/navbar.js';
+                const cacheDuration = 3600 * 1000; // 3600 seconds in milliseconds
+
+                async function cachePage() {
+                  const cache = await caches.open(cacheName);
+                  const response = await fetch(urlToCache, { cache: 'reload' });
+                  await cache.put(urlToCache, response);
+                  console.log(`Cached ${urlToCache} at ${new Date().toLocaleTimeString()}`);
+                }
+
+                async function refreshCache() {
+                  await cachePage();
+                  setTimeout(refreshCache, cacheDuration);
+                }
+
+                refreshCache()
             })
             .catch(error => console.error('Error updating settings:', error));
-        }, 500); // Wait 500ms after last change before sending
+        }
     </script>
     <script type="text/javascript" src="/cache/footer.js"></script>
     <script type="text/javascript" src="/cache/navbar.js"></script>

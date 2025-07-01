@@ -223,43 +223,51 @@ let createNavbar = () => {
 // Add this function after createNavbar but before using it
 const uploadPfp = async (file) => {
   if (!file) return;
-  
+
   try {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsArrayBuffer(file);
-      
+
       reader.onload = () => {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/api/user/updatepfp', true);
         xhr.setRequestHeader('Content-Type', file.type);
-        
-        xhr.onload = function() {
-          if (xhr.status === 200) {
+
+        // Enable sending cookies (important for server to get token from cookie)
+        xhr.withCredentials = true;
+
+        xhr.onload = function () {
+          try {
             const data = JSON.parse(xhr.responseText);
-            if (data.error) {
-              alert(data.error);
+            if (xhr.status === 200) {
+              if (data.error) {
+                alert(data.error);
+              } else {
+                document.querySelectorAll('.pfp, .large-pfp').forEach(img => {
+                  img.src = URL.createObjectURL(file);
+                });
+              }
+              resolve(data);
             } else {
-              document.querySelectorAll('.pfp, .large-pfp').forEach(img => {
-                img.src = URL.createObjectURL(file);
-              });
+              reject(new Error(data.error || 'Upload failed'));
             }
-            resolve(data);
-          } else {
-            reject(new Error('Upload failed'));
+          } catch (e) {
+            reject(new Error('Invalid server response'));
           }
         };
-        
+
         xhr.onerror = () => reject(new Error('Network error'));
         xhr.send(reader.result);
       };
-      
+
       reader.onerror = reject;
     });
   } catch (error) {
     console.error('Error uploading profile picture:', error);
   }
-}
+};
+
 
 // Manage the navbar
 let navline
@@ -286,9 +294,9 @@ if (data.error != undefined) {
   })
   if (data.pfp == null) {
     document.querySelectorAll('.mypfp').forEach(img => {
-      img.src = `/Default.jpg`
+      img.src = `/cache/Default.jpg`
     })
-  pfp.src = `/Default.jpg`
+  pfp.src = `/cache/Default.jpg`
   }
   pfp.classList.add('pfp')
   hasPFP = true
@@ -409,8 +417,12 @@ document.querySelectorAll('.username').forEach(el => {
   if (el.hasAttribute('myusername')) el.textContent = usr
 })
 
+document.querySelectorAll('.displayname').forEach(el => {
+  if (el.hasAttribute('mydisplayname')) el.textContent = "{displayname}"
+})
+
 document.querySelectorAll('.email').forEach(el => {
-  if (el.hasAttribute('myemail')) el.textContent = eml
+  if (el.hasAttribute('myemail')) el.textContent = "{email}"
 })
 
 // Logs

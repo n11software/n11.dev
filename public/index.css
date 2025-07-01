@@ -165,6 +165,15 @@ svg.data,.business {
   width: 3rem;
 }
 
+@media only screen and (min-width: 1500px) {
+  .hero>.left>.title {
+    font-size: 6rem;
+  }
+  .hero>.left>.description {
+    font-size: 1.5rem;
+  }
+}
+
 /* Mobile */
 @media only screen and (max-width: 1000px) {
   div.data, .open-source {

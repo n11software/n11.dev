@@ -95,14 +95,13 @@
         document.querySelector('.next').innerHTML = loading
         if (window.innerWidth < 1000) document.querySelector('div.center > div > .buttons > .next').style.padding = "0.25rem 1rem"
         else document.querySelector('.next').style.padding = "0rem 1rem"
-        let hash = await hashPassword(document.querySelector('.password').value)
         let res = await fetch('/api/account/delete', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                password: hash
+                password: document.querySelector('.password').value
             })
         }).then(res=>res.json())
         

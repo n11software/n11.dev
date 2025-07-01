@@ -35,8 +35,7 @@
                          id="passcode-input" 
                          maxlength="4" 
                          pattern="\d{4}"
-                         placeholder="••••"
-                         value="{pin}">
+                         placeholder="••••">
                 </div>
                 
                 <div class="input-group">
@@ -52,7 +51,7 @@
 
                 <div class="status-info">
                   <span>Last Pin entry:</span>
-                  <span id="last-entry-time">Never</span>
+                  <span id="last-entry-time">{pinLastTimeUsed}</span>
                 </div>
               </div>
             </div>
@@ -128,21 +127,8 @@
         document.getElementById('passcode-settings').style.display = 
             document.getElementById('passcode-toggle').checked ? 'block' : 'none';
 
-        // Debounce function to prevent too many API calls
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
         // Send updates to the API
-        const sendUpdates = debounce(() => {
+        const sendUpdates = () => {
             if (Object.keys(changedSettings).length === 0) return;
 
             fetch('/api/account/security/update', {
@@ -159,7 +145,7 @@
                 }
             })
             .catch(error => console.error('Error updating security settings:', error));
-        }, 500);
+        }
     </script>
     <script type="text/javascript" src="/cache/footer.js"></script>
     <script type="text/javascript" src="/cache/navbar.js"></script>

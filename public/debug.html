@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Profile</title>
+</head>
+<body>
+  <h1>Profile</h1>
+  <textarea id="profileData" rows="10" cols="60"></textarea><br>
+  <button onclick="saveProfile()">Save</button>
+  <button onclick="logout()">Logout</button>
+
+  <script>
+    async function loadProfile() {
+      const res = await fetch('/api/profile', { credentials: 'include' });
+      if (!res.ok) {
+        location.href = '/login.html';
+        return;
+      }
+
+      const data = await res.json();
+      document.getElementById('profileData').value = JSON.stringify(data, null, 2);
+    }
+
+    async function saveProfile() {
+      try {
+        const newData = JSON.parse(document.getElementById('profileData').value).data;
+        const res = await fetch('/api/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(newData)
+        });
+        const result = await res.json();
+        alert(result.success ? 'Saved!' : result.error);
+      } catch (e) {
+        alert('Invalid JSON');
+      }
+    }
+
+    function logout() {
+      fetch('/api/logout', { method: 'POST', credentials: 'include' })
+        .then(() => location.href = '/login.html');
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>
