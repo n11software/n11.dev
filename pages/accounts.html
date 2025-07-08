@@ -59,9 +59,31 @@
         let date = new Date();
         date.setTime(date.getTime() + (180 * 24 * 60 * 60 * 1000));
         document.cookie = `offload=${JSON.stringify(offloadJSON)}; expires=${date.toUTCString()}`;
-        
-        // Reload page
-        location.reload();
+
+        // Check if offload is empty
+        if (Object.keys(offloadJSON).length === 0) {
+          document.cookie = `offload=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        }
+
+        // If username cookie == username then change it to the first one in offloadJSON
+        let usernameCookie = document.cookie.split(';').find(cookie => cookie.includes('username'));
+        if (usernameCookie) {
+          let currentUsername = usernameCookie.split('=')[1];
+          if (currentUsername === username) {
+            let newUsername = Object.keys(offloadJSON)[0];
+            if (Object.keys(offloadJSON).length === 0) {
+              document.cookie = `username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+              document.cookie = `key=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            } else {
+              document.cookie = `username=${newUsername}; expires=${date.toUTCString()}; path=/;`;
+              document.cookie = `key=${offloadJSON[newUsername]}; expires=${date.toUTCString()}; path=/;`;
+            }
+          }
+        }
+        reloadCache('/cache/navbar.js', () => {
+          // Reload page
+          location.reload();
+        });
       }
 
       let reloadCache = async (file, callback) => {

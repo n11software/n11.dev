@@ -21,7 +21,7 @@ const { fstat } = require('fs');
 const multer = require('multer');
 const sharp = require('sharp');
 const { getData, saveData } = require('./secureUser');
-const { getDB } = require('./db');
+const { getDB, findSSO } = require('./db');
 
 const upload = multer({ limits: { fileSize: 1024 * 1024 * 1024 } }); // 5MB max
 
@@ -82,6 +82,24 @@ app.post('/api/user/updatepfp', express.raw({ type: '*/*', limit: '1gb' }), asyn
   } catch (err) {
     res.status(400).json({ error: 'Filetype not supported or image processing failed' });
     throw err;
+  }
+});
+
+app.post('/api/sso', async (req, res) => {
+  const { referrer, href } = req.body;
+
+  // parse url
+
+  const db = getDB();
+
+  try {
+    // Check if the SSO entry already exists
+    const existingSSO = await findSSO(referrer);
+
+    res.json({ location: existingSSO.location, trusted: existingSSO.trusted, href });
+  } catch (err) {
+    console.error('Error saving SSO data:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 

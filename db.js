@@ -22,6 +22,14 @@ async function initDB() {
       encrypted_keys JSON NOT NULL
     )
   `);
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS sso (
+      uuid VARCHAR(36) UNIQUE PRIMARY KEY,
+      domain TEXT NOT NULL,
+      location TEXT NOT NULL,
+      trusted BOOLEAN NOT NULL
+    )
+  `);
   return db;
 }
 
@@ -31,7 +39,12 @@ async function findUser(username) {
 }
 
 async function findUserById(id) {
-  const [rows] = await db.query(`SELECT * FROM users WHERE id = ?`, [id]);
+  const [rows] = await db.query(`SELECT * FROM users WHERE uuid = ?`, [id]);
+  return rows[0] || null;
+}
+
+async function findSSO(domain) {
+  const [rows] = await db.query(`SELECT * FROM sso WHERE domain = ?`, [domain]);
   return rows[0] || null;
 }
 
@@ -47,4 +60,4 @@ function getDB() {
   return db;
 }
 
-module.exports = { initDB, findUser, findUserById, createUser, getDB };
+module.exports = { initDB, findUser, findUserById, createUser, getDB, findSSO };

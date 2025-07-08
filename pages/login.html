@@ -203,7 +203,31 @@
 
                 // Start the cache refresh process
                 await refreshCache().then(() => {
-                  window.location.href = "/"
+                  // window.location.href = "/"
+                  // Ask api if referrer can have token and if it can have the offload too
+                  const urlParams = new URLSearchParams(window.location.search);
+                  const referrer = urlParams.get('referrer');
+                  const href = urlParams.get('href');
+                  if (referrer && href) {
+                    fetch('/api/sso', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ referrer, href })
+                    }).then(response => response.json())
+                    .then(data => {
+                      if (data.error) window.location.href = '/';
+                      console.log(data);
+                      let object = JSON.stringify({
+                        token: token,
+                        offload: document.cookie.split(';').find(cookie => cookie.includes('offload'))&&data.trusted ? JSON.parse(document.cookie.split(';').find(cookie => cookie.includes('offload')).split('=')[1]) : {}
+                      });
+                      let redir = 'https://' + referrer + '/' + data.location + "?object=" + encodeURIComponent(object) + "&href=" + encodeURIComponent(href);
+                      window.location.href = redir;
+                    });
+                  } else {
+                    window.location.href = '/';
+                  }
                 })
               }
             })
