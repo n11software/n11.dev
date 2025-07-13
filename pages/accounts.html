@@ -128,7 +128,7 @@
           document.cookie = `key=${password}`;
           document.cookie = `username=${username}`;
           // Start the cache refresh process
-          refreshCache().then(() => {
+          reloadCache('/cache/navbar.js', () => {
             // window.location.href = "/"
             // Ask api if referrer can have token and if it can have the offload too
             const urlParams = new URLSearchParams(window.location.search);
