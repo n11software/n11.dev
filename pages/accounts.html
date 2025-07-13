@@ -176,10 +176,7 @@
           if (data.error) {
             return;
           }
-          document.getElementById('add').href = proto + referrer + '/' + data.location + "?object=" + encodeURIComponent(JSON.stringify({
-            token: token,
-            offload: document.cookie.split(';').find(cookie => cookie.includes('offload'))&&data.trusted ? JSON.parse(document.cookie.split(';').find(cookie => cookie.includes('offload')).split('=')[1]) : {}
-          })) + "&href=" + encodeURIComponent(href);
+          document.getElementById('add').href = `/login?referrer=${encodeURIComponent(referrer)}&href=${encodeURIComponent(href)}`;
         });
       }
     </script>
