@@ -87,11 +87,6 @@ app.post('/api/user/updatepfp', express.raw({ type: '*/*', limit: '1gb' }), asyn
 
 app.post('/api/sso', async (req, res) => {
   const { referrer, href } = req.body;
-
-  // parse url
-
-  const db = getDB();
-
   try {
     // Check if the SSO entry already exists
     const existingSSO = await findSSO(referrer);

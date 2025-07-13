@@ -24,7 +24,7 @@
         <div class="accounts">
           {accounts}
         </div>
-        <a href="/login" class="add-account">Add Account</a>
+        <a href="/login" class="add-account" id="add">Add Account</a>
       </div>
     </div>
     <script>
@@ -127,17 +127,61 @@
           date.setTime(date.getTime() + (180 * 24 * 60 * 60 * 1000));
           document.cookie = `key=${password}`;
           document.cookie = `username=${username}`;
-          reloadCache('/cache/navbar.js', () => {
-            let url = new URL(window.location.href);
-            let redir = url.searchParams.get('redir');
-            if (redir) {
-              window.location.href = redir;
+          // Start the cache refresh process
+          refreshCache().then(() => {
+            // window.location.href = "/"
+            // Ask api if referrer can have token and if it can have the offload too
+            const urlParams = new URLSearchParams(window.location.search);
+            const referrer = urlParams.get('referrer');
+            const href = urlParams.get('href');
+            if (referrer && href) {
+              fetch('/api/sso', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ referrer, href })
+              }).then(response => response.json())
+              .then(data => {
+                if (data.error) window.location.href = '/';
+                console.log(data);
+                let object = JSON.stringify({
+                  token: token,
+                  offload: document.cookie.split(';').find(cookie => cookie.includes('offload'))&&data.trusted ? JSON.parse(document.cookie.split(';').find(cookie => cookie.includes('offload')).split('=')[1]) : {}
+                });
+                let proto = "https://";
+                if (refferer.includes('localhost') && !referrer.includes('.')) {
+                  proto = "http://"
+                }
+                let redir = proto + referrer + '/' + data.location + "?object=" + encodeURIComponent(object) + "&href=" + encodeURIComponent(href);
+                window.location.href = redir;
+              });
             } else {
               window.location.href = '/';
             }
-          });
+          })
         });
       });
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const referrer = urlParams.get('referrer');
+      const href = urlParams.get('href');
+      if (referrer && href) {
+        fetch('/api/sso', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ referrer, href })
+        }).then(response => response.json())
+        .then(data => {
+          if (data.error) {
+            return;
+          }
+          document.getElementById('add').href = proto + referrer + '/' + data.location + "?object=" + encodeURIComponent(JSON.stringify({
+            token: token,
+            offload: document.cookie.split(';').find(cookie => cookie.includes('offload'))&&data.trusted ? JSON.parse(document.cookie.split(';').find(cookie => cookie.includes('offload')).split('=')[1]) : {}
+          })) + "&href=" + encodeURIComponent(href);
+        });
+      }
     </script>
     <script type="text/javascript" src="/cache/animations.js"></script>
   </body>
