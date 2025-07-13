@@ -219,6 +219,7 @@
                       if (data.error) window.location.href = '/';
                       console.log(data);
                       let object = JSON.stringify({
+                        username: value,
                         token: token,
                         offload: document.cookie.split(';').find(cookie => cookie.includes('offload'))&&data.trusted ? JSON.parse(document.cookie.split(';').find(cookie => cookie.includes('offload')).split('=')[1]) : {}
                       });

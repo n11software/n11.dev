@@ -144,8 +144,10 @@
               .then(data => {
                 if (data.error) window.location.href = '/';
                 console.log(data);
+
                 let object = JSON.stringify({
-                  token: token,
+                  username: username,
+                  token: password,
                   offload: document.cookie.split(';').find(cookie => cookie.includes('offload'))&&data.trusted ? JSON.parse(document.cookie.split(';').find(cookie => cookie.includes('offload')).split('=')[1]) : {}
                 });
                 let proto = "https://";
