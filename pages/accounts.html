@@ -151,7 +151,7 @@
                   offload: document.cookie.split(';').find(cookie => cookie.includes('offload'))&&data.trusted ? JSON.parse(document.cookie.split(';').find(cookie => cookie.includes('offload')).split('=')[1]) : {}
                 });
                 let proto = "https://";
-                if (refferer.includes('localhost') && !referrer.includes('.')) {
+                if (referrer.includes('localhost') && !referrer.includes('.')) {
                   proto = "http://"
                 }
                 let redir = proto + referrer + '/' + data.location + "?object=" + encodeURIComponent(object) + "&href=" + encodeURIComponent(href);
