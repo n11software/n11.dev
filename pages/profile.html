@@ -250,11 +250,13 @@
           const statusClass = data.online ? 'status-online' : 'status-offline';
           const statusText = data.online ? 'Online' : 'Offline';
           
+          if (typeof data == "string") data = JSON.parse(data)
+
           let pfp = '/cache/Default.jpg';
           console.log(data);
-          // if (JSON.parse(data).pfp != null) {
-          //   pfp = 'data:image/png;base64,'+JSON.parse(data.pfp).pfp;
-          // }
+          if (data.pfp.pfp != null) {
+            pfp = 'data:image/png;base64,'+data.pfp.pfp;
+          }
 
           document.getElementById('profile-content').innerHTML = `
             <div class="profile-header">
