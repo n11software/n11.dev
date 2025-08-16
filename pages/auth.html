@@ -62,6 +62,7 @@
                 }
                 let redir = proto + referrer + data.location + "?object=" + encodeURIComponent(object) + "&href=" + encodeURIComponent(href);
                 console.log('Redirecting to:', redir);
+                window.location.href = redir;
             }
         });
     </script>
