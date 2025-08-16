@@ -154,7 +154,7 @@
                 if (referrer.includes('localhost') && !referrer.includes('.')) {
                   proto = "http://"
                 }
-                let redir = proto + referrer + '/' + data.location + "?object=" + encodeURIComponent(object) + "&href=" + encodeURIComponent(href);
+                let redir = proto + referrer + data.location + "?object=" + encodeURIComponent(object) + "&href=" + encodeURIComponent(href);
                 window.location.href = redir;
               });
             } else {

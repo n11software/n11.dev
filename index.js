@@ -25,19 +25,9 @@ const { getDB, findSSO } = require('./db');
 
 const upload = multer({ limits: { fileSize: 1024 * 1024 * 1024 } }); // 5MB max
 
-const whitelist = [
-  'https://enterprise.n11.dev',
-  'https://c10d.n11.dev',
-  process.env.CORS_ORIGIN, // This should be set in your environment variables
-];
-
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || whitelist.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    callback(null, true);
   },
   credentials: true // allow cookies
 };
@@ -90,12 +80,20 @@ app.post('/api/sso', async (req, res) => {
   try {
     // Check if the SSO entry already exists
     const existingSSO = await findSSO(referrer);
+    if (!existingSSO) {
+      // If it exists, update the location and trusted status
+      return res.json({ error: 'SSO does not exist' });
+    }
 
     res.json({ location: existingSSO.location, trusted: existingSSO.trusted, href });
   } catch (err) {
     console.error('Error saving SSO data:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
+});
+
+app.get('/auth', async (req, res) => {
+  res.sendFile(path.join(__dirname, 'pages', 'auth.html'));
 });
 
 app.get('/login', (req, res) => {

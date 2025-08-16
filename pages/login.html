@@ -25,7 +25,7 @@
         <div class="buttons">
           <a class="next" id="next">Next</a>
         </div>
-        <span class="signup">Need a new account? <a href="/signup">Signup.</a></span>
+        <span class="signup">Need a new account? <a href="/signup" id="signup">Signup.</a></span>
       </div>
     </div>
     <script type="text/javascript" src="/cache/animations.js"></script>
@@ -224,7 +224,7 @@
                         offload: document.cookie.split(';').find(cookie => cookie.includes('offload'))&&data.trusted ? JSON.parse(document.cookie.split(';').find(cookie => cookie.includes('offload')).split('=')[1]) : {}
                       });
                       let proto = "https://";
-                      if (refferer.includes('localhost') && !referrer.includes('.')) {
+                      if (referrer.includes('localhost') && !referrer.includes('.')) {
                         proto = "http://"
                       }
                       let redir = proto + referrer + '/' + data.location + "?object=" + encodeURIComponent(object) + "&href=" + encodeURIComponent(href);
@@ -245,6 +245,11 @@
           next()
         }
       })
+      // set signup if the param refferer is set and href is set
+      if (window.location.search.includes('referrer') && window.location.search.includes('href'))
+        document.querySelector('.signup').innerHTML = 'Need a new account? <a href="/signup?referrer=' + new URLSearchParams(window.location.search).get('referrer') + '&href=' + new URLSearchParams(window.location.search).get('href') + '" id="signup">Signup.</a>';
+      else
+        document.querySelector('.signup').innerHTML = 'Need a new account? <a href="/signup" id="signup">Signup.</a>';
     </script>
   </body>
 </html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Created and designed by Levi Hicks -->
+    <meta name="theme-color" content="#000000">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N11 - Auth</title>
+    <link rel="stylesheet" href="/accounts.css"/>
+    <link rel="icon" type="image/png" href="/favicon-48x48.png" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="N11" />
+    <link rel="manifest" href="/site.webmanifest" />
+  </head>
+  <body>
+    <script>
+        // If add is a param then redir to /accounts else then redir back with token
+        let urlParams = new URLSearchParams(window.location.search);
+        let add = urlParams.get('add');
+        let referrer = urlParams.get('referrer') || 'n11.dev';
+        let href = urlParams.get('href') || '/';
+        fetch('/api/sso', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                referrer: referrer,
+                href: href
+            })
+        }).then(response => response.json())
+          .then(data => {
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
+
+            let token, value, offload;
+
+            try {
+                token = document.cookie.split(';').find(cookie => cookie.includes('key')).split('=')[1];
+                value = document.cookie.split(';').find(cookie => cookie.includes('username')).split('=')[1];
+                offload = document.cookie.split(';').find(cookie => cookie.includes('offload')).split('=')[1];
+            } catch (error) {
+                window.location.href = '/login?referrer=' + referrer + '&href=' + href;
+            }
+            console.log(token, value, offload);
+
+            if (add) {
+                window.location.href = '/accounts?referrer=' + referrer + '&href=' + href;
+            } else {
+                let object = JSON.stringify({
+                    username: value,
+                    token: token,
+                    offload: offload
+                });
+                let proto = "https://";
+                if (referrer.includes('localhost') && !referrer.includes('.')) {
+                    proto = "http://"
+                }
+                let redir = proto + referrer + data.location + "?object=" + encodeURIComponent(object) + "&href=" + encodeURIComponent(href);
+                console.log('Redirecting to:', redir);
+            }
+        });
+    </script>
+    <script type="text/javascript" src="/cache/animations.js"></script>
+  </body>
+</html>
