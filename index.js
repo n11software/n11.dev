@@ -269,6 +269,10 @@ app.post('/api/login', async (req, res) => {
   res.json({ success: true, token });
 });
 
+app.get('/auth', async (req, res) => {
+  res.sendFile(path.join(__dirname, 'pages', 'auth.html'));
+});
+
 app.get('/api/user/profile/:name', async (req, res) => {
   const { name } = req.params;
   const profile = await secureUser.findUser(name);
