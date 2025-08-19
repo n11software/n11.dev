@@ -104,14 +104,17 @@ app.get('/accounts', async (req, res) => {
   const cookie = req.cookies.offload;
   if (!cookie) return res.redirect('/login');
 
+  let ref = req.params.referrer
+  let href = req.params.href
+  let loginLink = ref&&href? ('/login?referrer='+ref+'&href='+href) : '/login';
   let accounts;
   try {
     accounts = JSON.parse(cookie); // offload cookie is a JSON object
     // if accounts is empty
-    if (Object.keys(accounts).length === 0) return res.redirect('/login');
+    if (Object.keys(accounts).length === 0) return res.redirect(loginLink);
     if (accounts.error) return res.json(accounts);
   } catch (err) {
-    return res.redirect('/login');
+    return res.redirect(loginLink);
   }
 
   const db = getDB();
