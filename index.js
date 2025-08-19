@@ -106,6 +106,7 @@ app.get('/accounts', async (req, res) => {
 
   let ref = req.params.referrer
   let href = req.params.href
+  console.log(ref, href)
   let loginLink = ref&&href? ('/login?referrer='+ref+'&href='+href) : '/login';
   let accounts;
   try {
