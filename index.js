@@ -102,12 +102,12 @@ app.get('/login', (req, res) => {
 
 app.get('/accounts', async (req, res) => {
   const cookie = req.cookies.offload;
-  if (!cookie) return res.redirect('/login');
-
   let ref = req.params.referrer
   let href = req.params.href
   console.log(ref, href)
   let loginLink = ref&&href? ('/login?referrer='+ref+'&href='+href) : '/login';
+  if (!cookie) return res.redirect(loginLink);
+
   let accounts;
   try {
     accounts = JSON.parse(cookie); // offload cookie is a JSON object
